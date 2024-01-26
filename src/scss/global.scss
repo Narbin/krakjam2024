@@ -1,0 +1,14 @@
+@import "src/assets/fonts/fonts.css";
+@import "vars";
+
+body {
+  font-size: 1.6rem;
+  font-family: $font-primary, sans-serif;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+

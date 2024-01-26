@@ -1,0 +1,32 @@
+import {writable} from 'svelte/store';
+import {ISettings} from "src/types";
+
+const settings: ISettings = {
+    timeTweenDuration: 7500,
+    timeIntervalLength: 24,
+    frameByFrameFPS: 24,
+    transitionsFPS: 24,
+    actualModal: null,
+    actualView: '',
+    language: 'pl'
+}
+
+const {subscribe, set, update} = writable(settings);
+
+const settingsStore = {
+    update,
+    subscribe,
+    set: (key: string, value: string | number | null | boolean | any) => update(items => {
+        const newSettings = {...items};
+
+        if (newSettings.hasOwnProperty(key)) {
+            newSettings[key] = value;
+        } else {
+            console.error(`No '${key}' in settings store`);
+        }
+
+        return newSettings;
+    })
+};
+
+export default settingsStore;

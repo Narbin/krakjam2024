@@ -1,0 +1,30 @@
+{
+	"include": ["src/**/*", "webpack.config.ts"],
+	"exclude": ["node_modules/*", "__sapper__/*", "public/*"],
+	"compilerOptions": {
+		"resolveJsonModule": true,
+		"moduleResolution": "node",
+		"target": "es2017",
+		"importsNotUsedAsValues": "remove",
+		"isolatedModules": true,
+		"esModuleInterop": true,
+		"sourceMap": true,
+		"strict": false,
+		"baseUrl": ".",
+		"paths": {
+			"src/*": ["src/*"]
+		},
+		"types": [
+			"svelte",
+			"svelte/store",
+			"svelte/action",
+			"svelte/motion",
+			"svelte/transition",
+			"svelte/internal",
+			"svelte/animate",
+			"svelte/easing",
+			"node",
+			"webpack-env"
+		]
+	}
+}
