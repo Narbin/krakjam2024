@@ -129,34 +129,48 @@ export function throttleTicker(fnc, callsPerSecond) {
 
 const units = {
     Tank: {
-        hitPoints: 1000,
-        maxHitPoints: 1000,
-        speed: 100,
-        attack: {
-            min: 20,
-            max: 50
-        },
-        evasion: 5
+        type: 'Tank',
+        hitPoints: 800,
+        maxHitPoints: 800,
+        speed: 60,
+        attackMin: 20,
+        attackMax: 50,
+        evasion: 0,
+        cooldown: 0,
+        timeout: 2
     },
     Shooter: {
-        hitPoints: 500,
-        maxHitPoints: 500,
-        speed: 100,
-        attack: {
-            min: 80,
-            max: 100
-        },
-        evasion: 15
+        type: 'Shooter',
+        hitPoints: 400,
+        maxHitPoints: 400,
+        speed: 120,
+        attackMin: 80,
+        attackMax: 100,
+        evasion: 15,
+        cooldown: 0,
+        timeout: 3
     },
     Melee: {
-        hitPoints: 600,
-        maxHitPoints: 600,
+        type: 'Melee',
+        hitPoints: 500,
+        maxHitPoints: 500,
+        speed: 90,
+        attackMin: 110,
+        attackMax: 130,
+        evasion: 10,
+        cooldown: 0,
+        timeout: 3
+    },
+    Enemy1: {
+        type: 'Enemy1',
+        hitPoints: 400,
+        maxHitPoints: 400,
         speed: 100,
-        attack: {
-            min: 110,
-            max: 130
-        },
-        evasion: 10
+        attackMin: 60,
+        attackMax: 80,
+        evasion: 40,
+        cooldown: 0,
+        timeout: 4
     }
 }
 
