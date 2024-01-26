@@ -5,6 +5,7 @@ import * as helpers from "src/helpers";
 import {writable} from "svelte/store";
 import {onMount} from "svelte";
 import {units} from "src/helpers";
+import {gsap} from "gsap";
 let contentWidth;
 console.log(contentWidth)
 const {subscribe, set, update} = writable([]);
@@ -104,44 +105,46 @@ let currentMove = 0;
 
 $: {
     if (currentUnitObj && currentUnitObj.team === 'enemy') {
-        helpers.delayCall(() => {
-            // pobieramy wszystkie postacie playera
-            let availableUnitsToAttack = $unitsStore.filter(obj => obj.team === 'player');
-            if (currentUnitObj.line === 'front') {
-                // jezeli jestesmy na froncie to tylko frontowe mozemy zaatakowac
-                const playersFront = availableUnitsToAttack.filter(obj => obj.line === 'front');
+        // pobieramy wszystkie postacie playera
+        let availableUnitsToAttack = $unitsStore.filter(obj => obj.team === 'player');
+        if (currentUnitObj.line === 'front') {
+            // jezeli jestesmy na froncie to tylko frontowe mozemy zaatakowac
+            const playersFront = availableUnitsToAttack.filter(obj => obj.line === 'front');
 
-                // chyba ze nie froncie nie ma juz nikogo to bierzemy back
-                if(playersFront.length === 0) {
-                    availableUnitsToAttack = availableUnitsToAttack.filter(obj => obj.line === 'back');
-                } else {
-                    availableUnitsToAttack = playersFront;
+            // chyba ze nie froncie nie ma juz nikogo to bierzemy back
+            if(playersFront.length === 0) {
+                availableUnitsToAttack = availableUnitsToAttack.filter(obj => obj.line === 'back');
+            } else {
+                availableUnitsToAttack = playersFront;
+            }
+        }
+        let lowestHpPlayerObj = null;
+        if (playerProvocations.length > 0) {
+            const newestProvocation = playerProvocations[playerProvocations.length - 1];
+            const provUnit = availableUnitsToAttack.find(obj => obj.id === newestProvocation.id);
+            console.log(newestProvocation, provUnit, availableUnitsToAttack)
+            if (provUnit) {
+                lowestHpPlayerObj = provUnit;
+                newestProvocation.uses -= 1;
+                if (newestProvocation.uses === 0) {
+                    playerProvocations.splice(playerProvocations.indexOf(newestProvocation), 1);
                 }
             }
-            let lowestHpPlayerObj = null;
-            if (playerProvocations.length > 0) {
-                const newestProvocation = playerProvocations[playerProvocations.length - 1];
-                const provUnit = availableUnitsToAttack.find(obj => obj.id === newestProvocation.id);
-                console.log(newestProvocation, provUnit, availableUnitsToAttack)
-                if (provUnit) {
-                    lowestHpPlayerObj = provUnit;
-                    newestProvocation.uses -= 1;
-                    if (newestProvocation.uses === 0) {
-                        playerProvocations.splice(playerProvocations.indexOf(newestProvocation), 1);
-                    }
-                }
-            }
+        }
 
-            console.log(lowestHpPlayerObj)
-            if (!lowestHpPlayerObj) {
-                lowestHpPlayerObj = availableUnitsToAttack.sort((a, b) => a.hitPoints - b.hitPoints)[0] || null;
-            }
+        console.log(lowestHpPlayerObj)
+        if (!lowestHpPlayerObj) {
+            lowestHpPlayerObj = availableUnitsToAttack.sort((a, b) => a.hitPoints - b.hitPoints)[0] || null;
+        }
 
-            if (lowestHpPlayerObj) {
+        if (lowestHpPlayerObj) {
+            attackAnimation(currentUnitObj.id, lowestHpPlayerObj.id, 0, () => {
                 unitsStore.attack(currentUnitObj.id, lowestHpPlayerObj.id);
-            }
-            nextMove();
-        }, 0.1)
+            }, () => {
+                nextMove();
+            })
+        }
+        nextMove();
     }
 }
 function nextMove() {
@@ -219,6 +222,26 @@ function selectPossibleUnitsToAttack(unit){
 onMount(() => {
 })
 let hoveredUnits = [];
+
+function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
+    const tl = gsap.timeline({paused: true});
+    const toX = gsap.getProperty(`.${to}`, "x");
+    const fromX = gsap.getProperty(`.${from}`, "x");
+    const toWidth = gsap.getProperty(`.${to}`, "width");
+    tl.to(`.${from}`, {
+        ease: "power1.in",
+        yoyo: true,
+        translateX: toX + (fromX > toX ? toWidth : -toWidth),
+        translateY: gsap.getProperty(`.${to}`, "y"),
+        translateZ: gsap.getProperty(`.${to}`, "z"),
+        duration: 0.7,
+        repeat: 1,
+        repeatDelay: 0.3,
+        onComplete: onComplete,
+        onRepeat: onAttack
+    })
+    tl.play();
+}
 </script>
 
 <div class="test" style="
@@ -247,15 +270,18 @@ let hoveredUnits = [];
                        transform: translate3d({unit.team === 'player' ? ((unit.line === 'front' ? startingPointOfPlayer : startingPointOfPlayer - spaceBetweenUnits * 1.5 ) + (spaceBetweenUnits * unit.place) - (unitWidth * 0.5)) : ((unit.line === 'front' ? startingPointOfEnemy : startingPointOfEnemy + spaceBetweenUnits * 1.5 )  + (spaceBetweenUnits * unit.place) - (unitWidth * 0.5))}px, 0px, -{unit.place * 100}px)"
                         on:click={() => {
                        if(currentUnitObj && currentUnitObj.team === 'player' && selectedSkillId !== null) {
-                           if (Math.random() * 100 >= unit.evasion) {
-                               unitsStore.attack(currentUnitObj.id, unit.id, selectedSkillId);
-                           } else {
-                               console.log('MISS')
-                           }
-
-                          nextMove();
-                           selectedSkillId = null;
-                          hoveredUnits = [];
+                           attackAnimation(currentUnitObj.id, unit.id, selectedSkillId, () => {
+                               if (Math.random() * 100 >= unit.evasion) {
+                                    unitsStore.attack(currentUnitObj.id, unit.id, selectedSkillId);
+                               } else {
+                                   // todo: evadeAnimation
+                                   console.log('MISS')
+                               }
+                           }, () => {
+                              nextMove();
+                               selectedSkillId = null;
+                              hoveredUnits = [];
+                           })
                        }}}
                      on:mouseenter={() => {
                          if (selectedSkillId !== null) {
