@@ -49,14 +49,15 @@ const loadImage = path => {
     })
 }
 
+async function oneByOne(arr, callback) {
+ return await arr.reduce((promise, spec) => promise.then(async () => await callback(spec)), Promise.resolve())
+}
+
 function executeSequentially(promiseFactories) {
-    var result = Promise.resolve();
-    promiseFactories.forEach(function (url) {
-        result = result.then(() => {
-            return loadImage(url);
-        });
-    });
-    return result;
+    oneByOne(promiseFactories, (url) => {
+       return loadImage(url);
+    })
+
 }
 
 function executeAtOnce(promiseFactories) {
@@ -84,7 +85,7 @@ onMount(() => {
     preloadImages(images);
 
     window.gsap = gsap;
-    totalLoaded = totalItems;
+    // totalLoaded = totalItems;
     // wywala sie aktualnie
     helpers.delayCall(() => {
         executeSequentially(arr);
@@ -99,19 +100,26 @@ onMount(() => {
 
 <svelte:window/>
 
+{#if totalLoaded === totalItems}
 
-{#if $settingsStore.actualView == 'FOREST'}
+ {#if $settingsStore.actualView == 'FOREST'}
   <Battle/>
  {:else if $settingsStore.actualView == 'FIELD'}
   <Race/>
  {:else}
 
- <div style="position: relative; width: 100%; height: 100%;">
-  <div style="position: absolute; top: 25%; left: 25%;" on:click={() => {settingsStore.set('actualView', 'FOREST')}}>LAS</div>
-  <div style="position: absolute; right: 25%; top:25%;">RZEKA</div>
-  <div style="position: absolute; bottom: 33%; right: 33%;" on:click={() => {settingsStore.set('actualView', 'FIELD')}}>POLE</div>
+  <div style="position: relative; width: 100%; height: 100%;">
+   <div style="position: absolute; top: 25%; left: 25%;" on:click={() => {settingsStore.set('actualView', 'FOREST')}}>LAS</div>
+   <div style="position: absolute; right: 25%; top:25%;">RZEKA</div>
+   <div style="position: absolute; bottom: 33%; right: 33%;" on:click={() => {settingsStore.set('actualView', 'FIELD')}}>POLE</div>
+  </div>
+ {/if}
+{:else}
+ <div class="loading">
+  Ładownie.. {Math.floor(totalLoaded / totalItems * 100)}%
  </div>
 {/if}
+
 
 
 <!--<AdventuresLogic/>-->
@@ -122,5 +130,11 @@ onMount(() => {
 
 <!--<UpgradesPanel/>-->
 
+<div class="hidden"></div>
 <style lang="scss">
+ .hidden {
+  position: fixed;
+  top: 100vh;
+  width: 100vw;
+ }
 </style>
