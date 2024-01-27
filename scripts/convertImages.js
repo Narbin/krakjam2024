@@ -50,7 +50,7 @@ glob( 'notCompressedImages/**/*.+(png|PNG|svg)', {nocase: false}, async function
     b2.start(files.length, 0);
     for (const file of files) {
         if (!file.includes('notUsed')) {
-            if (file.match(/\.png/gi) && (file.includes('characters') || file.includes('animations')) && !file.includes('avatar')) {
+            if (file.match(/\.png/gi) && (file.includes('units') || file.includes('animations')) && !file.includes('avatar')) {
                 const test = await sharp(file).raw()
                     .toBuffer({resolveWithObject: true})
                 const test1 = await sharp(file).rotate(90).raw()
@@ -111,7 +111,7 @@ glob( 'notCompressedImages/**/*.+(png|PNG|svg)', {nocase: false}, async function
             }
 
             if (file.match(/\.png/gi)) {
-                const shouldExtract = (file.includes('characters') || file.includes('animations')) && !file.includes('avatar');
+                const shouldExtract = (file.includes('units') || file.includes('animations')) && !file.includes('avatar');
 
                 const arr = file.split('/')
                 arr.pop();

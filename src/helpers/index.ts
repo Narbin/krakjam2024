@@ -171,6 +171,17 @@ const units = {
         evasion: 40,
         cooldown: 0,
         timeout: 4
+    },
+    EnemyBunny: {
+        type: 'EnemyBunny',
+        hitPoints: 400,
+        maxHitPoints: 400,
+        speed: 100,
+        attackMin: 60,
+        attackMax: 80,
+        evasion: 40,
+        cooldown: 0,
+        timeout: 4
     }
 }
 

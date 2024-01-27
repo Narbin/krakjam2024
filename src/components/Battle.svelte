@@ -6,6 +6,7 @@ import {writable} from "svelte/store";
 import {onMount} from "svelte";
 import {units} from "src/helpers";
 import {gsap} from "gsap";
+    import AnimationFrameByFrameV2 from "src/components/common/AnimationFrameByFrameV2.svelte";
 let contentWidth;
 console.log(contentWidth)
 const {subscribe, set, update} = writable([]);
@@ -35,13 +36,13 @@ const unitsStore = {
                     uses: 2,
                 });
                 console.log('dodano prowokacje!')
-            } else if (fromObj.type === 'Shooter'){
+            } else if (fromObj.type === 'Shooter') {
                 const backLine = newItems.filter(obj => obj.team !== fromObj.team && obj.line === toObj.line);
                 const att = _.random(fromObj.attackMin, fromObj.attackMax) * 0.5;
                 backLine.forEach(obj => {
                     obj.hitPoints -= att;
                 });
-            } else if (fromObj.type === 'Melee'){
+            } else if (fromObj.type === 'Melee') {
                 const row = newItems.filter(obj => obj.team !== fromObj.team && obj.place === toObj.place);
                 const att = _.random(fromObj.attackMin, fromObj.attackMax);
                 row.forEach(obj => {
@@ -51,7 +52,7 @@ const unitsStore = {
                         obj.hitPoints -= att * 0.8;
                     }
                 });
-            } else if (fromObj.type === 'Enemy1'){
+            } else if (fromObj.type === 'Enemy1') {
                 const playerTeam = newItems.filter(obj => obj.team !== fromObj.team);
                 playerTeam.forEach(obj => {
                     obj.speed = ~~(obj.speed * 0.7);
@@ -77,17 +78,24 @@ const unitsStore = {
             return obj;
         });
         return newItems;
+    }),
+    changeStatus: (id, status) => update(items => {
+        const newItems = [...items];
+
+        const obj = newItems.find(obj => obj.id === id);
+        obj.status = status;
+
+        return newItems;
     })
-};
+}
 
-
-unitsStore.addUnit({id: 'player1', line: 'front', width: 0.1, aspectRadio: 16/9, place: 1, team: 'player', ...units.Tank})
-unitsStore.addUnit({id: 'player2', line: 'back', width: 0.1, aspectRadio: 16/9, place: 2, team: 'player', ...units.Shooter})
-unitsStore.addUnit({id: 'player3', line: 'back', width: 0.1, aspectRadio: 16/9, place: 1, team: 'player', ...units.Melee})
-unitsStore.addUnit({id: 'enemy1', line: 'front', width: 0.1, aspectRadio: 16/9, place: 1, team: 'enemy', ...units.Enemy1})
-unitsStore.addUnit({id: 'enemy2', line: 'front', width: 0.1, aspectRadio: 16/9, place: 2, team: 'enemy', ...units.Enemy1})
-// unitsStore.addUnit({id: 'enemy3', line: 'front', width: 0.1, aspectRadio: 16/9, place: 1, team: 'enemy', ...units.Melee})
-// unitsStore.addUnit({id: 'enemy4',  line: 'front', width: 0.1, aspectRadio: 16/9, place: 2, team: 'enemy', ...units.Melee})
+unitsStore.addUnit({status: 'idle', id: 'player1', line: 'front', width: 0.1, aspectRatio: 16/9, place: 1, team: 'player', ...units.Tank})
+unitsStore.addUnit({status: 'idle', id: 'player2', line: 'back', width: 0.1, aspectRatio: 16/9, place: 2, team: 'player', ...units.Shooter})
+unitsStore.addUnit({status: 'idle', id: 'player3', line: 'back', width: 0.1, aspectRatio: 16/9, place: 1, team: 'player', ...units.Melee})
+unitsStore.addUnit({status: 'idle', id: 'enemy1', line: 'front', width: 0.1, aspectRatio: 16/9, place: 1, team: 'enemy', ...units.Enemy1})
+unitsStore.addUnit({status: 'idle', id: 'enemy2', line: 'front', width: 0.1, aspectRatio: 16/9, place: 2, team: 'enemy', ...units.Enemy1})
+// unitsStore.addUnit({id: 'enemy3', line: 'front', width: 0.1, aspectRatio: 16/9, place: 1, team: 'enemy', ...units.Melee})
+// unitsStore.addUnit({id: 'enemy4',  line: 'front', width: 0.1, aspectRatio: 16/9, place: 2, team: 'enemy', ...units.Melee})
 
 let currentUnitObj = null;
 $: {
@@ -141,10 +149,10 @@ $: {
             attackAnimation(currentUnitObj.id, lowestHpPlayerObj.id, 0, () => {
                 unitsStore.attack(currentUnitObj.id, lowestHpPlayerObj.id);
             }, () => {
-                nextMove();
+                // nextMove();
             })
         }
-        nextMove();
+        // nextMove();
     }
 }
 function nextMove() {
@@ -220,6 +228,7 @@ function selectPossibleUnitsToAttack(unit){
 }
 
 onMount(() => {
+    console.log(images)
     helpers.loadAudio(music['Boss_-_Baroness_Battle']).then((obj) => {
         obj.play();
     });
@@ -241,11 +250,21 @@ function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
         repeat: 1,
         repeatDelay: 0.3,
         onComplete: onComplete,
+        onStart: () => {
+            unitsStore.changeStatus(from, 'walk');
+        },
         onRepeat: () => {
             onAttack();
         }
     })
     tl.play();
+}
+
+function getImagesKeys(unit) {
+    if (['walk', 'comingBackWalk'].includes(unit.status)) {
+        return images.units[unit.type].walk;
+    }
+    return images.units[unit.type][unit.status];
 }
 </script>
 
@@ -280,13 +299,15 @@ function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
                                     unitsStore.attack(currentUnitObj.id, unit.id);
                                     helpers.loadAudio(sounds['whip01-6952']).then((obj) => {
                                         obj.play();
+                                        unitsStore.attack(currentUnitObj.id, unit.id, selectedSkillId);
                                     });
-                                    unitsStore.attack(currentUnitObj.id, unit.id, selectedSkillId);
+                                    unitsStore.changeStatus(currentUnitObj.id, 'comingBackWalk');
                                } else {
                                    // todo: evadeAnimation
                                    console.log('MISS')
                                }
                            }, () => {
+                               unitsStore.changeStatus(currentUnitObj.id, 'idle');
                               nextMove();
                                selectedSkillId = null;
                               hoveredUnits = [];
@@ -300,7 +321,15 @@ function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
                     on:mouseleave={() => {hoveredUnits = [];}}
                 >  {unit.type} - {unit.line} - {unit.place}
                     <img src="{images.unit}" style="width: 100%; height: auto;">
-
+                    <AnimationFrameByFrameV2 width="{contentWidth * unit.width}" aspectRatio="{unit.aspectRatio}"
+                                             introImagesKeys={[]}
+                                             imagesKeys="{getImagesKeys(unit)}"
+                                             id="{unit.id}"
+                                             isRotated="{unit.team === 'player' || unit.status === 'comingBackWalk' ? true : false}"
+                                             isPlaying="{true}"
+                                             delay="{0}"
+                                             isDimmed="{false}"
+                    />
                     <div style="width: {(unit.hitPoints / unit.maxHitPoints * 100)}%; height: 25px; background: green; position: absolute; bottom: 0;">
                     </div>
                 </div>
