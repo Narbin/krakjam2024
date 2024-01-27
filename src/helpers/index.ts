@@ -65,7 +65,7 @@ export async function loadImageWithWorker(sourceSrc) {
         nativeSrc = 'app://-/';
     }
 
-    let src = nativeSrc ? `${nativeSrc}/${sourceSrc}` : `http://localhost${port}/${sourceSrc}`;
+    let src = nativeSrc ? `https://krakjam2024.web.app/${sourceSrc}` : `http://localhost${port}/${sourceSrc}`;
 
     return new Promise((resolve, reject) => {
         function handler(e) {
