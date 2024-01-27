@@ -14,6 +14,7 @@ import _ from "lodash";
 import {ISettings} from "src/types";
 import {writable} from "svelte/store";
 import Battle from "src/components/Battle.svelte";
+import Race from "src/components/Race.svelte";
 
 let totalLoaded = 0;
 let totalItems = 0;
@@ -100,14 +101,15 @@ onMount(() => {
 
 
 {#if $settingsStore.actualView == 'FOREST'}
- <Battle/>
-
+  <Battle/>
+ {:else if $settingsStore.actualView == 'FIELD'}
+  <Race/>
  {:else}
 
  <div style="position: relative; width: 100%; height: 100%;">
   <div style="position: absolute; top: 25%; left: 25%;" on:click={() => {settingsStore.set('actualView', 'FOREST')}}>LAS</div>
   <div style="position: absolute; right: 25%; top:25%;">RZEKA</div>
-  <div style="position: absolute; bottom: 33%; right: 33%;">POLE</div>
+  <div style="position: absolute; bottom: 33%; right: 33%;" on:click={() => {settingsStore.set('actualView', 'FIELD')}}>POLE</div>
  </div>
 {/if}
 

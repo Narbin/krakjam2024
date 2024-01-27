@@ -137,7 +137,9 @@ const units = {
         attackMax: 50,
         evasion: 0,
         cooldown: 0,
-        timeout: 2
+        timeout: 2,
+        width: 0.4,
+        aspectRatio: 883/1280,
     },
     Shooter: {
         type: 'Shooter',
@@ -148,7 +150,9 @@ const units = {
         attackMax: 100,
         evasion: 15,
         cooldown: 0,
-        timeout: 3
+        timeout: 3,
+        width: 0.2,
+        aspectRatio: 16/9,
     },
     Melee: {
         type: 'Melee',
@@ -159,10 +163,12 @@ const units = {
         attackMax: 130,
         evasion: 10,
         cooldown: 0,
-        timeout: 3
+        timeout: 3,
+        width: 0.2,
+        aspectRatio: 713/789,
     },
-    Enemy1: {
-        type: 'Enemy1',
+    EnemyBunny: {
+        type: 'EnemyBunny',
         hitPoints: 400,
         maxHitPoints: 400,
         speed: 100,
@@ -170,7 +176,48 @@ const units = {
         attackMax: 80,
         evasion: 40,
         cooldown: 0,
-        timeout: 4
+        timeout: 4,
+        width: 0.15,
+        aspectRatio: 701/713
+    },
+    EnemyWTF: {
+        type: 'EnemyWTF',
+        hitPoints: 400,
+        maxHitPoints: 400,
+        speed: 100,
+        attackMin: 60,
+        attackMax: 80,
+        evasion: 40,
+        cooldown: 0,
+        timeout: 4,
+        width: 0.2,
+        aspectRatio: 677/554,
+    },
+    EnemyDiabolo: {
+        type: 'EnemyDiabolo',
+        hitPoints: 400,
+        maxHitPoints: 400,
+        speed: 100,
+        attackMin: 60,
+        attackMax: 80,
+        evasion: 40,
+        cooldown: 0,
+        timeout: 4,
+        width: 0.3,
+        aspectRatio: 1047/751,
+    },
+    EnemyDragon: {
+        type: 'EnemyDragon',
+        hitPoints: 400,
+        maxHitPoints: 400,
+        speed: 100,
+        attackMin: 60,
+        attackMax: 80,
+        evasion: 40,
+        cooldown: 0,
+        timeout: 4,
+        width: 0.3,
+        aspectRatio: 576/522,
     }
 }
 

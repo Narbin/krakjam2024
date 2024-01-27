@@ -6,247 +6,330 @@ import {writable} from "svelte/store";
 import {onMount} from "svelte";
 import {units} from "src/helpers";
 import {gsap} from "gsap";
-let contentWidth;
-console.log(contentWidth)
-const {subscribe, set, update} = writable([]);
+    import AnimationFrameByFrameV2 from "src/components/common/AnimationFrameByFrameV2.svelte";
+    let contentWidth;
+    console.log(contentWidth)
+    const {subscribe, set, update} = writable([]);
+    import {v4 as UUIDv4} from 'uuid';
 
-const playerProvocations = [];
+    const playerProvocations = [];
 
-const unitsStore = {
-    update,
-    subscribe,
-    addUnit: (unit) => update(items => {
-        const newItems = [...items, unit];
+    const unitsStore = {
+        update,
+        subscribe,
+        addUnit: (unit) => update(items => {
+            const newItems = [...items, unit];
+            return newItems;
+        }),
+        attack: (from, to, skillId = 0) => update(items => {
+            const newItems = [...items];
 
-        return newItems;
-    }),
-    attack: (from, to, skillId = 0) => update(items => {
-        const newItems = [...items];
+            const fromObj = newItems.find(obj => obj.id === from);
+            const toObj = newItems.find(obj => obj.id === to);
 
-        const fromObj = newItems.find(obj => obj.id === from);
-        const toObj = newItems.find(obj => obj.id === to);
-
-        if (skillId === 0) {
-            toObj.hitPoints -= _.random(fromObj.attackMin, fromObj.attackMax);
-        } else {
-            if (fromObj.type === 'Tank') {
-                playerProvocations.push({
-                    id: fromObj.id,
-                    uses: 2,
-                });
-                console.log('dodano prowokacje!')
-            } else if (fromObj.type === 'Shooter'){
-                const backLine = newItems.filter(obj => obj.team !== fromObj.team && obj.line === toObj.line);
-                const att = _.random(fromObj.attackMin, fromObj.attackMax) * 0.5;
-                backLine.forEach(obj => {
-                    obj.hitPoints -= att;
-                });
-            } else if (fromObj.type === 'Melee'){
-                const row = newItems.filter(obj => obj.team !== fromObj.team && obj.place === toObj.place);
-                const att = _.random(fromObj.attackMin, fromObj.attackMax);
-                row.forEach(obj => {
-                    if (obj.line === 'front') {
-                        obj.hitPoints -= att * 1.2;
-                    } else {
-                        obj.hitPoints -= att * 0.8;
-                    }
-                });
-            } else if (fromObj.type === 'Enemy1'){
-                const playerTeam = newItems.filter(obj => obj.team !== fromObj.team);
-                playerTeam.forEach(obj => {
-                    obj.speed = ~~(obj.speed * 0.7);
-                });
-            }
-
-            fromObj.cooldown = fromObj.timeout;
-        }
-
-        if (toObj.hitPoints <= 0) {
-            newItems.splice(newItems.indexOf(toObj), 1);
-        }
-
-        return newItems;
-    }),
-    reduceCooldown: () => update(items => {
-        const newItems = [...items].map(obj => {
-            obj.cooldown -= 1;
-            if (obj.cooldown <= 0) {
-                obj.cooldown = 0;
-            }
-            console.log('CD REDUCED', obj.id, obj.cooldown)
-            return obj;
-        });
-        return newItems;
-    })
-};
-
-
-unitsStore.addUnit({id: 'player1', line: 'front', width: 0.1, aspectRadio: 16/9, place: 1, team: 'player', ...units.Tank})
-unitsStore.addUnit({id: 'player2', line: 'back', width: 0.1, aspectRadio: 16/9, place: 2, team: 'player', ...units.Shooter})
-unitsStore.addUnit({id: 'player3', line: 'back', width: 0.1, aspectRadio: 16/9, place: 1, team: 'player', ...units.Melee})
-unitsStore.addUnit({id: 'enemy1', line: 'front', width: 0.1, aspectRadio: 16/9, place: 1, team: 'enemy', ...units.Enemy1})
-unitsStore.addUnit({id: 'enemy2', line: 'front', width: 0.1, aspectRadio: 16/9, place: 2, team: 'enemy', ...units.Enemy1})
-// unitsStore.addUnit({id: 'enemy3', line: 'front', width: 0.1, aspectRadio: 16/9, place: 1, team: 'enemy', ...units.Melee})
-// unitsStore.addUnit({id: 'enemy4',  line: 'front', width: 0.1, aspectRadio: 16/9, place: 2, team: 'enemy', ...units.Melee})
-
-let currentUnitObj = null;
-$: {
-    currentUnitObj = $unitsStore.find(obj => obj.id === moves[currentMove]);
-    console.log('currentUnitObj', currentMove, currentUnitObj)
-}
-
-$: {
-    moves = _.orderBy($unitsStore, 'speed', 'desc').map(obj => obj.id)
-    console.log('moves', moves)
-}
-
-let moves = _.orderBy($unitsStore, 'speed', 'desc').map(obj => obj.id)
-let currentMove = 0;
-
-$: {
-    if (currentUnitObj && currentUnitObj.team === 'enemy') {
-        // pobieramy wszystkie postacie playera
-        let availableUnitsToAttack = $unitsStore.filter(obj => obj.team === 'player');
-        if (currentUnitObj.line === 'front') {
-            // jezeli jestesmy na froncie to tylko frontowe mozemy zaatakowac
-            const playersFront = availableUnitsToAttack.filter(obj => obj.line === 'front');
-
-            // chyba ze nie froncie nie ma juz nikogo to bierzemy back
-            if(playersFront.length === 0) {
-                availableUnitsToAttack = availableUnitsToAttack.filter(obj => obj.line === 'back');
+            if (skillId === 0) {
+                toObj.hitPoints -= _.random(fromObj.attackMin, fromObj.attackMax);
             } else {
-                availableUnitsToAttack = playersFront;
+                if (fromObj.type === 'Tank') {
+                    playerProvocations.push({
+                        id: fromObj.id,
+                        uses: 2,
+                    });
+                    console.log('dodano prowokacje!')
+                } else if (fromObj.type === 'Shooter') {
+                    const backLine = newItems.filter(obj => obj.team !== fromObj.team && obj.line === toObj.line);
+                    const att = _.random(fromObj.attackMin, fromObj.attackMax) * 0.5;
+                    backLine.forEach(obj => {
+                        obj.hitPoints -= att;
+                    });
+                } else if (fromObj.type === 'Melee') {
+                    const row = newItems.filter(obj => obj.team !== fromObj.team && obj.place === toObj.place);
+                    const att = _.random(fromObj.attackMin, fromObj.attackMax);
+                    row.forEach(obj => {
+                        if (obj.line === 'front') {
+                            obj.hitPoints -= att * 1.2;
+                        } else {
+                            obj.hitPoints -= att * 0.8;
+                        }
+                    });
+                } else if (fromObj.type === 'Enemy1') {
+                    const playerTeam = newItems.filter(obj => obj.team !== fromObj.team);
+                    playerTeam.forEach(obj => {
+                        obj.speed = ~~(obj.speed * 0.7);
+                    });
+                }
+
+                fromObj.cooldown = fromObj.timeout;
+            }
+
+            if (toObj.hitPoints <= 0) {
+                newItems.splice(newItems.indexOf(toObj), 1);
+            }
+
+            return newItems;
+        }),
+        reduceCooldown: () => update(items => {
+            const newItems = [...items].map(obj => {
+                obj.cooldown -= 1;
+                if (obj.cooldown <= 0) {
+                    obj.cooldown = 0;
+                }
+                console.log('CD REDUCED', obj.id, obj.cooldown)
+                return obj;
+            });
+            return newItems;
+        }),
+        changeStatus: (id, status) => update(items => {
+            const newItems = [...items];
+
+            const obj = newItems.find(obj => obj.id === id);
+            obj.status = status;
+
+            return newItems;
+        })
+    }
+
+    let currentUnitObj = null;
+
+    $: {
+        moves = _.orderBy($unitsStore, 'speed', 'desc').map(obj => obj.id)
+        // console.log('moves', moves)
+    }
+
+    let moves = _.orderBy($unitsStore, 'speed', 'desc').map(obj => obj.id)
+    let currentMove = 0;
+    function currentUnitChanged() {
+        if (currentUnitObj && currentUnitObj.team === 'enemy') {
+            // pobieramy wszystkie postacie playera
+            let availableUnitsToAttack = $unitsStore.filter(obj => obj.team === 'player');
+            if (currentUnitObj.line === 'front') {
+                // jezeli jestesmy na froncie to tylko frontowe mozemy zaatakowac
+                const playersFront = availableUnitsToAttack.filter(obj => obj.line === 'front');
+
+                // chyba ze nie froncie nie ma juz nikogo to bierzemy back
+                if(playersFront.length === 0) {
+                    availableUnitsToAttack = availableUnitsToAttack.filter(obj => obj.line === 'back');
+                } else {
+                    availableUnitsToAttack = playersFront;
+                }
+            }
+            let lowestHpPlayerObj = null;
+            if (playerProvocations.length > 0) {
+                const newestProvocation = playerProvocations[playerProvocations.length - 1];
+                const provUnit = availableUnitsToAttack.find(obj => obj.id === newestProvocation.id);
+                // console.log(newestProvocation, provUnit, availableUnitsToAttack)
+                if (provUnit) {
+                    lowestHpPlayerObj = provUnit;
+                    newestProvocation.uses -= 1;
+                    if (newestProvocation.uses === 0) {
+                        playerProvocations.splice(playerProvocations.indexOf(newestProvocation), 1);
+                    }
+                }
+            }
+
+            if (!lowestHpPlayerObj) {
+                lowestHpPlayerObj = availableUnitsToAttack.sort((a, b) => a.hitPoints - b.hitPoints)[0] || null;
+            }
+
+            if (lowestHpPlayerObj) {
+                attackAnimation(currentUnitObj.id, lowestHpPlayerObj.id, 0, () => {
+
+                }, () => {
+
+                })
             }
         }
-        let lowestHpPlayerObj = null;
-        if (playerProvocations.length > 0) {
-            const newestProvocation = playerProvocations[playerProvocations.length - 1];
-            const provUnit = availableUnitsToAttack.find(obj => obj.id === newestProvocation.id);
-            console.log(newestProvocation, provUnit, availableUnitsToAttack)
-            if (provUnit) {
-                lowestHpPlayerObj = provUnit;
-                newestProvocation.uses -= 1;
-                if (newestProvocation.uses === 0) {
-                    playerProvocations.splice(playerProvocations.indexOf(newestProvocation), 1);
+    }
+    $: {
+        const nextUnit = $unitsStore.find(obj => obj.id === moves[currentMove]);
+        if (nextUnit && currentUnitObj && nextUnit.id !== currentUnitObj.id || !currentUnitObj) {
+            currentUnitObj = $unitsStore.find(obj => obj.id === moves[currentMove]);
+            currentUnitChanged();
+            console.log('currentUnitObj', currentMove, currentUnitObj)
+        }
+
+    }
+
+    function nextMove() {
+        if ($unitsStore.length - 1 === currentMove) {
+            currentMove = 0;
+            unitsStore.reduceCooldown();
+        } else  {
+            currentMove += 1;
+        }
+
+        if (!moves[currentMove]) {
+            currentMove = 0;
+        }
+
+        // console.log(currentMove)
+    }
+
+    function checkIfCanPlayerAttackUnit(unit) {
+        if (currentUnitObj && currentUnitObj.team === 'player' && unit.team === 'enemy') {
+            if (currentUnitObj.line === 'front') {
+                const frontEnemies = $unitsStore.filter(obj => obj.line === 'front');
+                if (frontEnemies.length === 0) {
+                    return true;
+                } else {
+                    if (unit.line === 'front') {
+                        return true;
+                    }
+                }
+            } else {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    let spaceBetweenUnits = 0;
+    let startingPointOfPlayer = 0;
+    let startingPointOfEnemy = 0;
+    $: {
+        spaceBetweenUnits = contentWidth * 0.12;
+        startingPointOfPlayer = contentWidth * 0.125;
+        startingPointOfEnemy = contentWidth * 0.5;
+    }
+
+    let selectedSkillId = null;
+
+    function selectPossibleUnitsToAttack(unit){
+        if (currentUnitObj && currentUnitObj.team === 'player' && unit.team === 'enemy') {
+            if (selectedSkillId === 1) {
+                if (currentUnitObj.type === 'Shooter') {
+                    const backLine = $unitsStore.filter(obj => obj.team === unit.team && obj.line === unit.line);
+                    backLine.forEach(obj => {
+                        hoveredUnits = [...hoveredUnits, obj.id]
+                    });
+                } else if (currentUnitObj.type === 'Melee') {
+                    const row = $unitsStore.filter(obj => obj.team === unit.team && obj.place === unit.place);
+                    row.forEach(obj => {
+                        hoveredUnits = [...hoveredUnits, obj.id]
+                    });
+                } else if (currentUnitObj.type === 'Tank') {
+                    $unitsStore.filter(obj => obj.team === unit.team).forEach(obj => {
+                        hoveredUnits = [...hoveredUnits, obj.id]
+                    });
+                }
+            } else {
+                if (checkIfCanPlayerAttackUnit(unit)) {
+                    hoveredUnits = [...hoveredUnits, unit.id]
                 }
             }
         }
+    }
 
-        console.log(lowestHpPlayerObj)
-        if (!lowestHpPlayerObj) {
-            lowestHpPlayerObj = availableUnitsToAttack.sort((a, b) => a.hitPoints - b.hitPoints)[0] || null;
+    onMount(() => {
+        console.log(images)
+        helpers.loadAudio(music['Boss_-_Baroness_Battle']).then((obj) => {
+            obj.play();
+        });
+
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'enemy', ...units.EnemyBunny})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'enemy', ...units.EnemyDiabolo})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'player', ...units.Melee})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'player', ...units.Melee})
+
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'enemy', ...units.EnemyDragon})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'enemy', ...units.EnemyWTF})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'player', ...units.Tank})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'player', ...units.Tank})
+
+    })
+    let hoveredUnits = [];
+
+    function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
+        const tl = gsap.timeline({paused: true, onComplete: () => {
+            onComplete();
+            unitsStore.changeStatus(from, 'idle');
+            nextMove();
+        }});
+        const toX = gsap.getProperty(`.id-${to}`, "x");
+        const fromX = gsap.getProperty(`.id-${from}`, "x");
+        const toObj = $unitsStore.find(obj => obj.id === to);
+        unitsStore.changeStatus(from, 'walk');
+
+        tl.to(`.id-${from}`, {
+            ease: "power1.in",
+            translateX: toX + (fromX > toX ? gsap.getProperty(`.id-${to}`, "width") * 0.5 : -gsap.getProperty(`.id-${from}`, "width") * 0.5),
+            translateY: gsap.getProperty(`.id-${to}`, "y"),
+            translateZ: gsap.getProperty(`.id-${to}`, "z"),
+            duration: Object.keys(getImagesKeys(currentUnitObj)).length / 24,
+            onComplete: () => {
+                unitsStore.changeStatus(from, 'attack');
+                helpers.loadAudio(sounds['whip01-6952']).then((obj) => {
+                    obj.play();
+                });
+                if (Math.random() * 100 >= toObj.evasion) {
+                    unitsStore.attack(from, to, selectedSkillId);
+                    helpers.delayCall(() => {
+                        unitsStore.changeStatus(to, 'hurt');
+                        window.setTimeout(() => {
+                            unitsStore.changeStatus(to, 'idle');
+                        }, (Object.keys(_.get(images, `units[${toObj.type}].hurt`, {a:''})).length / 24) * 1000);
+
+                    }, (Object.keys(_.get(images, `units[${currentUnitObj.type}].attack`, {a:''})).length / 24) * 0.25)
+
+                } else {
+                    // todo: evadeAnimation
+                    console.log('MISS')
+                }
+            },
+            onStart: () => {
+                onAttack();
+            },
+        }).to(`.id-${from}`, {
+            ease: "power1.in",
+            translateX: fromX,
+            translateY: gsap.getProperty(`.id-${from}`, "y"),
+            translateZ: gsap.getProperty(`.id-${from}`, "z"),
+            duration: Object.keys(getImagesKeys(currentUnitObj)).length / 24,
+            delay: Object.keys(_.get(images, `units[${currentUnitObj.type}].attack`, {a:''})).length / 24,
+            onStart: () => {
+                unitsStore.changeStatus(from, 'comingBackWalk');
+            },
+        })
+        tl.play();
+    }
+
+    function getImagesKeys(unit) {
+        if (['walk', 'comingBackWalk'].includes(unit.status)) {
+            return images.units[unit.type].walk;
         }
-
-        if (lowestHpPlayerObj) {
-            attackAnimation(currentUnitObj.id, lowestHpPlayerObj.id, 0, () => {
-                unitsStore.attack(currentUnitObj.id, lowestHpPlayerObj.id);
-            }, () => {
-                nextMove();
-            })
-        }
-        nextMove();
-    }
-}
-function nextMove() {
-    if ($unitsStore.length - 1 === currentMove) {
-        currentMove = 0;
-        unitsStore.reduceCooldown();
-    } else  {
-        currentMove += 1;
+        return images.units[unit.type][unit.status];
     }
 
-    if (!moves[currentMove]) {
-        currentMove = 0;
-    }
-
-    console.log(currentMove)
-}
-
-function checkIfCanPlayerAttackUnit(unit) {
-    if (currentUnitObj && currentUnitObj.team === 'player' && unit.team === 'enemy') {
-        if (currentUnitObj.line === 'front') {
-            const frontEnemies = $unitsStore.filter(obj => obj.line === 'front');
-            if (frontEnemies.length === 0) {
+    function getIsRotated(unit) {
+        if (unit.team === 'player') {
+            if (['idle', 'walk', 'attack', 'hurt'].includes(unit.status)) {
                 return true;
             } else {
-                if (unit.line === 'front') {
-                    return true;
-                }
+                return false;
             }
         } else {
-            return true;
+            if (['idle', 'walk', 'attack', 'hurt'].includes(unit.status)) {
+                return false;
+            } else {
+                return true;
+            }
         }
     }
 
-    return false;
-}
+    function initUnit(node, props) {
+        const unit = props.unit;
+        const unitWidth = unit.width * contentWidth;
 
-
-let spaceBetweenUnits = 0;
-let startingPointOfPlayer = 0;
-let startingPointOfEnemy = 0;
-$: {
-    spaceBetweenUnits = contentWidth * 0.1;
-    startingPointOfPlayer = contentWidth * 0.2;
-    startingPointOfEnemy = contentWidth * 0.8;
-}
-
-let selectedSkillId = null;
-
-function selectPossibleUnitsToAttack(unit){
-    if (currentUnitObj && currentUnitObj.team === 'player' && unit.team === 'enemy') {
-        if (selectedSkillId === 1) {
-            if (currentUnitObj.type === 'Shooter') {
-                const backLine = $unitsStore.filter(obj => obj.team === unit.team && obj.line === unit.line);
-                backLine.forEach(obj => {
-                    hoveredUnits = [...hoveredUnits, obj.id]
-                });
-            } else if (currentUnitObj.type === 'Melee') {
-                const row = $unitsStore.filter(obj => obj.team === unit.team && obj.place === unit.place);
-                row.forEach(obj => {
-                    hoveredUnits = [...hoveredUnits, obj.id]
-                });
-            } else if (currentUnitObj.type === 'Tank') {
-                $unitsStore.filter(obj => obj.team === unit.team).forEach(obj => {
-                    hoveredUnits = [...hoveredUnits, obj.id]
-                });
-            }
-        } else {
-            if (checkIfCanPlayerAttackUnit(unit)) {
-                hoveredUnits = [...hoveredUnits, unit.id]
-            }
-        }
+        gsap.set(node, {
+            x: unit.team === 'player'
+                ? ((unit.line === 'front' ? startingPointOfPlayer : startingPointOfPlayer - spaceBetweenUnits * 1.5 ) - (spaceBetweenUnits * unit.place) + (unitWidth * 0.5))
+                : ((unit.line === 'front' ? startingPointOfEnemy : startingPointOfEnemy + spaceBetweenUnits * 1.5 )  + (spaceBetweenUnits * unit.place) - (unitWidth * 0.5)),
+            y: -unit.place * spaceBetweenUnits,
+            // z: -unit.place * 100,
+        })
     }
-}
-
-onMount(() => {
-    helpers.loadAudio(music['Boss_-_Baroness_Battle']).then((obj) => {
-        obj.play();
-    });
-})
-let hoveredUnits = [];
-
-function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
-    const tl = gsap.timeline({paused: true});
-    const toX = gsap.getProperty(`.${to}`, "x");
-    const fromX = gsap.getProperty(`.${from}`, "x");
-    const toWidth = gsap.getProperty(`.${to}`, "width");
-    tl.to(`.${from}`, {
-        ease: "power1.in",
-        yoyo: true,
-        translateX: toX + (fromX > toX ? toWidth : -toWidth),
-        translateY: gsap.getProperty(`.${to}`, "y"),
-        translateZ: gsap.getProperty(`.${to}`, "z"),
-        duration: 0.7,
-        repeat: 1,
-        repeatDelay: 0.3,
-        onComplete: onComplete,
-        onRepeat: () => {
-            onAttack();
-        }
-    })
-    tl.play();
-}
 </script>
 
 <div class="test" style="
@@ -257,8 +340,8 @@ function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
     border: 1px solid black;
     width: 100%;
     height: 100%;
-      perspective: 100px;
-    transform-style: preserve-3d;
+      /*perspective: 100px;*/
+    /*transform-style: preserve-3d;*/
       top: 0;
       left: 50%;
       transform: translateX(-50%);
@@ -266,30 +349,19 @@ function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
         {#if contentWidth > 0}
             {#each $unitsStore as unit (unit.id)}
                 {@const unitWidth = unit.width * contentWidth}
-                <div on:keydown={() => {}} class="{unit.id}" class:isActive={hoveredUnits.includes(unit.id)}
+                <div use:initUnit={{unit}}
+                        on:keydown={() => {}} class="id-{unit.id}" class:isActive={hoveredUnits.includes(unit.id)}
                        style="position:absolute;
-                       left:0; bottom:0;
-                       border:1px solid {currentUnitObj && currentUnitObj.id === unit.id ? 'red' : 'black'};
-                       height: {unitWidth * 16/9}px;
-                       width: {unitWidth}px;
-                       transform: translate3d({unit.team === 'player' ? ((unit.line === 'front' ? startingPointOfPlayer : startingPointOfPlayer - spaceBetweenUnits * 1.5 ) + (spaceBetweenUnits * unit.place) - (unitWidth * 0.5)) : ((unit.line === 'front' ? startingPointOfEnemy : startingPointOfEnemy + spaceBetweenUnits * 1.5 )  + (spaceBetweenUnits * unit.place) - (unitWidth * 0.5))}px, 0px, -{unit.place * 100}px)"
+                       left:0; bottom:0; pointer-events: none;
+                       height: {unitWidth * unit.aspectRatio}px;
+                       width: {unitWidth}px;"
                         on:click={() => {
                        if(currentUnitObj && currentUnitObj.team === 'player' && selectedSkillId !== null) {
                            attackAnimation(currentUnitObj.id, unit.id, selectedSkillId, () => {
-                               if (Math.random() * 100 >= unit.evasion) {
-                                    unitsStore.attack(currentUnitObj.id, unit.id);
-                                    helpers.loadAudio(sounds['whip01-6952']).then((obj) => {
-                                        obj.play();
-                                    });
-                                    unitsStore.attack(currentUnitObj.id, unit.id, selectedSkillId);
-                               } else {
-                                   // todo: evadeAnimation
-                                   console.log('MISS')
-                               }
-                           }, () => {
-                              nextMove();
-                               selectedSkillId = null;
-                              hoveredUnits = [];
+                               // on attack
+                            }, () => {
+                                selectedSkillId = null;
+                                hoveredUnits = [];
                            })
                        }}}
                      on:mouseenter={() => {
@@ -298,14 +370,30 @@ function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
                          }
                      }}
                     on:mouseleave={() => {hoveredUnits = [];}}
-                >  {unit.type} - {unit.line} - {unit.place}
-                    <img src="{images.unit}" style="width: 100%; height: auto;">
-
-                    <div style="width: {(unit.hitPoints / unit.maxHitPoints * 100)}%; height: 25px; background: green; position: absolute; bottom: 0;">
+                >
+                    <!--{unit.type} - {unit.line} - {unit.place} - {unit.status}-->
+                    <div style="pointer-events: none;">
+                        <AnimationFrameByFrameV2 width="{contentWidth * unit.width}" aspectRatio="{unit.aspectRatio}"
+                                                 introImagesKeys={[]}
+                                                 imagesKeys="{getImagesKeys(unit)}"
+                                                 isRotated="{getIsRotated(unit)}"
+                                                 isPlaying="{true}"
+                                                 delay="{0}"
+                                                 isDimmed="{false}"
+                        />
+                    </div>
+                    <div class="rectangle" style="pointer-events: all;position: absolute; bottom: 0; left: 50%; background: black; opacity: 0; transform: translate(-50%, 50%) skew(-39deg, 0deg); width: 100px; height: 50px; z-index: -1;">
+                        <div style="width: 100%; height: 200px; transform: skew(39deg, 0deg) translate(90%, -100%);"></div>
+                    </div>
+                    <div style="pointer-events:none; z-index: 5; bottom: -25px; position: absolute; left: 57%; transform:translateX(-90%); width: {(unit.hitPoints / unit.maxHitPoints * 100)}px; max-width: 100px; height: 10px; background: green; position: absolute; ">
                     </div>
                 </div>
-
             {/each}
+
+            <div style="opacity: 0.5; background: black; width: {contentWidth * 0.25}px; height: 2px; position: absolute; left: {startingPointOfPlayer}px; bottom: {spaceBetweenUnits * 1.5}px; z-index: -1;"></div>
+            <div style="opacity: 0.5; background: black; width: {contentWidth * 0.25}px; height: 2px; position: absolute; left: {startingPointOfEnemy + spaceBetweenUnits * 1.25}px; bottom: {spaceBetweenUnits * 1.5}px; z-index: -1;"></div>
+            <div style="opacity: 0.5; background: black; width: {contentWidth * 0.1}px; height: 2px; position: absolute; left: {startingPointOfPlayer + (spaceBetweenUnits * 0.5)}px; bottom: {spaceBetweenUnits * 1.5}px; z-index: -1; transform: skewY(50deg)"></div>
+            <div style="opacity: 0.5; background: black; width: {contentWidth * 0.1}px; height: 2px; position: absolute; left: {startingPointOfEnemy + (spaceBetweenUnits * 1.75)}px; bottom: {spaceBetweenUnits * 1.5}px; z-index: -1; transform: skewY(-50deg)"></div>
         {/if}
     </div>
 </div>
@@ -366,7 +454,11 @@ function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
 <svelte:head>
     <style>
         .isActive {
-            filter: drop-shadow(2px 4px 6px black);
+            .rectangle {
+                opacity: 0.5!important;
+            }
         }
+
+
     </style>
 </svelte:head>

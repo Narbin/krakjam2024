@@ -3,7 +3,7 @@
     import {get} from "svelte/store";
     import {createEventDispatcher, onMount} from 'svelte';
     import settingsStore from "src/stores/settings";
-    import {loadImage, loadImageWithWorker} from "src/helpers";
+    import {loadImageWithWorker} from "src/helpers";
     import _, {create} from "lodash";
     import {gsap} from "gsap";
     import * as helpers from "/src/helpers";
@@ -143,7 +143,7 @@
     }
 
     async function loop() {
-        if ($timeStore.isRunning && isPlaying && !finished && shouldUpdate) {
+        if (isPlaying && !finished && shouldUpdate) {
             let actualFrame = null;
 
             if (introImagesArray.length > 0 && !introFinished) {
