@@ -89,21 +89,11 @@ import {gsap} from "gsap";
         })
     }
 
-    unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'enemy', ...units.EnemyBunny})
-    unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'enemy', ...units.EnemyBunny})
-    unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'player', ...units.Tank})
-    unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'player', ...units.Tank})
-
-    unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'enemy', ...units.EnemyBunny})
-    unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'enemy', ...units.EnemyWTF})
-    unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'player', ...units.Tank})
-    unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'player', ...units.Tank})
-
     let currentUnitObj = null;
 
     $: {
         moves = _.orderBy($unitsStore, 'speed', 'desc').map(obj => obj.id)
-        console.log('moves', moves)
+        // console.log('moves', moves)
     }
 
     let moves = _.orderBy($unitsStore, 'speed', 'desc').map(obj => obj.id)
@@ -143,15 +133,7 @@ import {gsap} from "gsap";
 
             if (lowestHpPlayerObj) {
                 attackAnimation(currentUnitObj.id, lowestHpPlayerObj.id, 0, () => {
-                    if (Math.random() * 100 >= lowestHpPlayerObj.evasion) {
-                        helpers.loadAudio(sounds['whip01-6952']).then((obj) => {
-                            obj.play();
-                            unitsStore.attack(currentUnitObj.id, lowestHpPlayerObj.id, 0);
-                        });
-                    } else {
-                        // todo: evadeAnimation
-                        console.log('MISS')
-                    }
+
                 }, () => {
 
                 })
@@ -163,9 +145,9 @@ import {gsap} from "gsap";
         if (nextUnit && currentUnitObj && nextUnit.id !== currentUnitObj.id || !currentUnitObj) {
             currentUnitObj = $unitsStore.find(obj => obj.id === moves[currentMove]);
             currentUnitChanged();
+            console.log('currentUnitObj', currentMove, currentUnitObj)
         }
 
-        console.log('currentUnitObj', currentMove, currentUnitObj)
     }
 
     function nextMove() {
@@ -180,7 +162,7 @@ import {gsap} from "gsap";
             currentMove = 0;
         }
 
-        console.log(currentMove)
+        // console.log(currentMove)
     }
 
     function checkIfCanPlayerAttackUnit(unit) {
@@ -245,17 +227,29 @@ import {gsap} from "gsap";
         helpers.loadAudio(music['Boss_-_Baroness_Battle']).then((obj) => {
             obj.play();
         });
+
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'enemy', ...units.EnemyBunny})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'enemy', ...units.EnemyDiabolo})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'player', ...units.Melee})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'player', ...units.Melee})
+
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'enemy', ...units.EnemyDragon})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'enemy', ...units.EnemyWTF})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'player', ...units.Tank})
+        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'player', ...units.Tank})
+
     })
     let hoveredUnits = [];
 
     function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
         const tl = gsap.timeline({paused: true, onComplete: () => {
-                onComplete();
-                unitsStore.changeStatus(from, 'idle');
-                nextMove();
-            }});
+            onComplete();
+            unitsStore.changeStatus(from, 'idle');
+            nextMove();
+        }});
         const toX = gsap.getProperty(`.id-${to}`, "x");
         const fromX = gsap.getProperty(`.id-${from}`, "x");
+        const toObj = $unitsStore.find(obj => obj.id === to);
         unitsStore.changeStatus(from, 'walk');
 
         tl.to(`.id-${from}`, {
@@ -266,15 +260,23 @@ import {gsap} from "gsap";
             duration: Object.keys(getImagesKeys(currentUnitObj)).length / 24,
             onComplete: () => {
                 unitsStore.changeStatus(from, 'attack');
-                helpers.delayCall(() => {
-                    unitsStore.changeStatus(to, 'hurt');
+                helpers.loadAudio(sounds['whip01-6952']).then((obj) => {
+                    obj.play();
+                });
+                if (Math.random() * 100 >= toObj.evasion) {
+                    unitsStore.attack(from, to, selectedSkillId);
+                    helpers.delayCall(() => {
+                        unitsStore.changeStatus(to, 'hurt');
+                        window.setTimeout(() => {
+                            unitsStore.changeStatus(to, 'idle');
+                        }, (Object.keys(_.get(images, `units[${toObj.type}].hurt`, {a:''})).length / 24) * 1000);
 
-                    const toObj = $unitsStore.find(obj => obj.id === to);
-                    window.setTimeout(() => {
-                        unitsStore.changeStatus(to, 'idle');
-                    }, (Object.keys(_.get(images, `units[${toObj.type}].hurt`, {a:''})).length / 24) * 1000);
+                    }, (Object.keys(_.get(images, `units[${currentUnitObj.type}].attack`, {a:''})).length / 24) * 0.25)
 
-                }, (Object.keys(_.get(images, `units[${currentUnitObj.type}].attack`, {a:''})).length / 24) * 0.25)
+                } else {
+                    // todo: evadeAnimation
+                    console.log('MISS')
+                }
             },
             onStart: () => {
                 onAttack();
@@ -356,18 +358,10 @@ import {gsap} from "gsap";
                         on:click={() => {
                        if(currentUnitObj && currentUnitObj.team === 'player' && selectedSkillId !== null) {
                            attackAnimation(currentUnitObj.id, unit.id, selectedSkillId, () => {
-                               if (Math.random() * 100 >= unit.evasion) {
-                                    helpers.loadAudio(sounds['whip01-6952']).then((obj) => {
-                                        obj.play();
-                                        unitsStore.attack(currentUnitObj.id, unit.id, selectedSkillId);
-                                    });
-                               } else {
-                                   // todo: evadeAnimation
-                                   console.log('MISS')
-                               }
-                           }, () => {
-                               selectedSkillId = null;
-                              hoveredUnits = [];
+                               // on attack
+                            }, () => {
+                                selectedSkillId = null;
+                                hoveredUnits = [];
                            })
                        }}}
                      on:mouseenter={() => {
@@ -391,7 +385,7 @@ import {gsap} from "gsap";
                     <div class="rectangle" style="pointer-events: all;position: absolute; bottom: 0; left: 50%; background: black; opacity: 0; transform: translate(-50%, 50%) skew(-39deg, 0deg); width: 100px; height: 50px; z-index: -1;">
                         <div style="width: 100%; height: 200px; transform: skew(39deg, 0deg) translate(90%, -100%);"></div>
                     </div>
-                    <div style="pointer-events:none; z-index: 5; bottom: -25px; position: absolute; left: 57%; transform:translateX(-90%); width: {(unit.hitPoints / unit.maxHitPoints * 100)}%; max-width: 100px; height: 10px; background: green; position: absolute; ">
+                    <div style="pointer-events:none; z-index: 5; bottom: -25px; position: absolute; left: 57%; transform:translateX(-90%); width: {(unit.hitPoints / unit.maxHitPoints * 100)}px; max-width: 100px; height: 10px; background: green; position: absolute; ">
                     </div>
                 </div>
             {/each}
