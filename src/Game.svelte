@@ -86,9 +86,9 @@ onMount(() => {
     window.gsap = gsap;
     totalLoaded = totalItems;
     // wywala sie aktualnie
-    // helpers.delayCall(() => {
-    //     executeSequentially(arr);
-    // }, 1)
+    helpers.delayCall(() => {
+        executeSequentially(arr);
+    }, 1)
 
     // executeAtOnce(arr);
 
