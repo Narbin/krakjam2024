@@ -5,6 +5,7 @@
     import {writable} from "svelte/store";
     import {v4 as UUIDv4} from 'uuid';
     import * as helpers from "src/helpers/index";
+    import AnimationFrameByFrameV2 from "src/components/common/AnimationFrameByFrameV2.svelte";
 
     const movement = {
         up: false,
@@ -122,11 +123,22 @@
             }
         })
     }
+
+    import {images} from '/src/assets';
 </script>
 
 
 <div class="road" style="width: 100%; height: 500px; position: absolute; bottom: 0; background: rgba(0, 250, 0, 0.2);">
-    <div class="car" style="position: absolute; left: 0; top: 0; border: 2px solid black; width: 200px; height: 100px;"></div>
+    <div class="car" style="position: absolute; left: 0; top: 0; border: 2px solid black; width: 300px; height: 200px;">
+        <AnimationFrameByFrameV2 width="300px" aspectRatio="{16/9}"
+                                 introImagesKeys={[]}
+                                 imagesKeys="{images.static.car}"
+                                 isRotated="{false}"
+                                 isPlaying="{true}"
+                                 delay="{0}"
+                                 isDimmed="{false}"
+        />
+    </div>
 
     {#each $enemiesStore as enemy (enemy.id)}
         <div use:initEnemy={{enemy}} id="id-{enemy.id}" style="position:absolute; left:0; top:0 ;height: 70px; width: 70px; background: red;"></div>
