@@ -134,7 +134,7 @@ const config: Configuration = {
 			},
 
 			{
-				test: /\.(gif|png|jpe?g|webp|svg|xml|woff|woff2|eot|ttf|otf|wav|mp3|ogg|mp4)$/i,
+				test: /\.(gif|png|jpe?g|webp|svg|xml|woff|woff2|eot|ttf|otf|wav|mp3|ogg|mp4|m4a)$/i,
 				exclude: /noncompressed/,
 				use: {
 					loader: 'file-loader',

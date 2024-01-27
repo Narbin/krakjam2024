@@ -1,5 +1,5 @@
 <script>
-import {images} from "src/assets";
+    import {images, music, sounds} from "src/assets";
 import _ from "lodash";
 import * as helpers from "src/helpers";
 import {writable} from "svelte/store";
@@ -220,6 +220,9 @@ function selectPossibleUnitsToAttack(unit){
 }
 
 onMount(() => {
+    helpers.loadAudio(music['Boss_-_Baroness_Battle']).then((obj) => {
+        obj.play();
+    });
 })
 let hoveredUnits = [];
 
@@ -238,7 +241,9 @@ function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
         repeat: 1,
         repeatDelay: 0.3,
         onComplete: onComplete,
-        onRepeat: onAttack
+        onRepeat: () => {
+            onAttack();
+        }
     })
     tl.play();
 }
@@ -272,6 +277,10 @@ function attackAnimation(from, to, selectedSkillId, onAttack, onComplete) {
                        if(currentUnitObj && currentUnitObj.team === 'player' && selectedSkillId !== null) {
                            attackAnimation(currentUnitObj.id, unit.id, selectedSkillId, () => {
                                if (Math.random() * 100 >= unit.evasion) {
+                                    unitsStore.attack(currentUnitObj.id, unit.id);
+                                    helpers.loadAudio(sounds['whip01-6952']).then((obj) => {
+                                        obj.play();
+                                    });
                                     unitsStore.attack(currentUnitObj.id, unit.id, selectedSkillId);
                                } else {
                                    // todo: evadeAnimation

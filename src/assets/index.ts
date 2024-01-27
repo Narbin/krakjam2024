@@ -14,7 +14,7 @@ function importAllFilesFromFolder(fnc, filter) {
 const images = importAllFilesFromFolder(require.context('/src/assets/', true, /^(?!.*(?:fonts|music|sounds|videos)).*\.(webp|png|jpe?g|svg)$/) , /.(webp|png|jpe?g|svg)$/).images['compressed_100_9_10'];
 // @ts-ignore
 
-const {sounds, music} = importAllFilesFromFolder(require.context('/src/assets/', true, /^(?!.*(?:images|fonts|videos)).*\.(mp3|wav|ogg)$/) , /.(mp3|wav|ogg)$/);
+const {sounds, music} = importAllFilesFromFolder(require.context('/src/assets/', true, /^(?!.*(?:images|fonts|videos)).*\.(mp3|wav|ogg|m4a)$/) , /.(mp3|wav|ogg|m4a)$/);
 const {videos} = importAllFilesFromFolder(require.context('/src/assets/', true, /^(?!.*(fonts|music|sounds|images)).*\.(mp4)$/) , /.(mp4)$/);
 
 export {
