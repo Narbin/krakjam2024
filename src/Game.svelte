@@ -347,7 +347,7 @@ let showCredits = false;
                      <img alt src="{images.ui.select['Asset 13']}" style="width: 100%; transform: rotate(180deg)">
                  </div>
 
-                 <div style="width: 400px;position: absolute;right: -80px;top: 50%;transform: translate(100%, -50%);">
+                 <div style="width: 400px;position: absolute; right: 50%;  top: 50%; transform: translate(calc(50vw - 0%), -50%);">
                      <img alt src="{images.ui.select['BOARD']}" style="width: 100%;">
                      <span style="position: absolute; left: 54%; top: 8%; transform: translate(-50%, -50%)">FRONT LINE</span>
 
