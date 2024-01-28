@@ -116,9 +116,9 @@ onMount(async () => {
 
 $ : {
     if (!$settingsStore.actualView) {
-        mainMenuAudio.resume();
+        mainMenuAudio && mainMenuAudio.resume();
     } else {
-        mainMenuAudio.pause();
+        mainMenuAudio && mainMenuAudio.pause();
     }
 }
 
