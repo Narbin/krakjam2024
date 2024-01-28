@@ -375,8 +375,8 @@ import {gsap} from "gsap";
 
         gsap.set(node, {
             x: unit.team === 'player'
-                ? ((unit.line === 'front' ? startingPointOfPlayer : startingPointOfPlayer - spaceBetweenUnits * 1.5 ) - (spaceBetweenUnits * unit.place) + (unitWidth * 0.5))
-                : ((unit.line === 'front' ? startingPointOfEnemy : startingPointOfEnemy + spaceBetweenUnits * 1.5 )  + (spaceBetweenUnits * unit.place) - (unitWidth * 0.5)),
+                ? ((unit.line === 'front' ? startingPointOfPlayer : + startingPointOfPlayer - spaceBetweenUnits * (unit.type === 'Tank' ? 1.5 : 1)) - (spaceBetweenUnits * unit.place) + (unitWidth * (unit.type === 'Melee' ? 1.2 : unit.type === 'Shooter' ? 0.8 : 0.5)))
+                : ((unit.line === 'front' ? startingPointOfEnemy : startingPointOfEnemy + spaceBetweenUnits * (unit.type === 'Tank' ? 1.5 : 1) )  + (spaceBetweenUnits * unit.place) - (unitWidth * (unit.type === 'Melee' ? 1.2 : unit.type === 'Shooter' ? 0.8 : 0.5))),
             y: -unit.place * spaceBetweenUnits,
             // z: -unit.place * 100,
         })
