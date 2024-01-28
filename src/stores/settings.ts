@@ -1,14 +1,17 @@
 import {writable} from 'svelte/store';
 import {ISettings} from "src/types";
 
-const settings: ISettings = {
+const settings = {
     timeTweenDuration: 7500,
     timeIntervalLength: 24,
     frameByFrameFPS: 24,
     transitionsFPS: 24,
     actualModal: null,
     actualView: '',
-    language: 'pl'
+    language: 'pl',
+    fightCompleted1: false,
+    fightCompleted2: false,
+    runCompleted: false
 }
 
 const {subscribe, set, update} = writable(settings);

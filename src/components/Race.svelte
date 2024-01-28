@@ -15,8 +15,24 @@
     };
 
     const speed = 10;
+    let roadHeight = 0;
+    let killed = 0;
 
     onMount(() => {
+        helpers.loadAudio(music['wyscig'], true).then((obj) => {
+            obj.play();
+            obj.setVolume(1.6);
+        });
+        helpers.loadAudio(sounds['chlopi'], true).then((obj) => {
+            obj.play();
+            obj.setVolume(0.45);
+        });
+        helpers.loadAudio(sounds['woz'], true).then((obj) => {
+            obj.play();
+            obj.setVolume(1.25);
+        });
+
+        roadHeight = parseInt(gsap.getProperty('.road', 'height', 'px').replace('px', ''), 10);
         document.addEventListener('keydown', event => {
             if (event.code === 'ArrowUp') {
                 movement.up = true;
@@ -50,19 +66,29 @@
             ease:'linear',
             endArray: [2],
             onUpdate: () => {
+                const carX = parseInt(gsap.getProperty('.car', 'x'), 10);
+                const carWidth = parseInt(gsap.getProperty('.car', 'width'), 10);
+                const carY = parseInt(gsap.getProperty('.car', 'y'), 10);
+                const carHeight = parseInt(gsap.getProperty('.car', 'height'), 10);
+
                 if (movement.up) {
-                    gsap.to('.car', {y: `-=${speed}`, duration: 0.1, ease: 'power3.out'});
+                    if (0 < carY) {
+                        gsap.to('.car', {y: `-=${speed}`, duration: 0.1, ease: 'power3.out'});
+                    }
                 } else if (movement.down) {
-                    gsap.to('.car', {y: `+=${speed}`, duration: 0.1, ease: 'power3.out'});
+                    if (roadHeight - carHeight > carY) {
+                        gsap.to('.car', {y: `+=${speed}`, duration: 0.1, ease: 'power3.out'});
+                    }
                 }
                 if (movement.left) {
-                    gsap.to('.car', {x: `-=${speed}`, duration: 0.1, ease: 'power3.out'});
+                    if (0 < carX) {
+                        gsap.to('.car', {x: `-=${speed}`, duration: 0.1, ease: 'power3.out'});
+                    }
                 } else if (movement.right) {
-                    gsap.to('.car', {x: `+=${speed}`, duration: 0.1, ease: 'power3.out'});
+                    if (contentWidth - carWidth > carX) {
+                        gsap.to('.car', {x: `+=${speed}`, duration: 0.1, ease: 'power3.out'});
+                    }
                 }
-
-
-
             }
         })
 
@@ -71,9 +97,11 @@
 
     function addEnemy() {
         helpers.delayCall(() => {
-            enemiesStore.addEnemy({id: UUIDv4()})
+            enemiesStore.addEnemy({id: UUIDv4(), status: 'walk', type: [_.sample(['EnemyBunny', 'EnemyDiabolo', 'EnemyDragon', 'EnemyWTF'])]})
+            enemiesStore.addEnemy({id: UUIDv4(), status: 'walk', type: [_.sample(['EnemyBunny', 'EnemyDiabolo', 'EnemyDragon', 'EnemyWTF'])]})
+            // enemiesStore.addEnemy({id: UUIDv4(), status: 'walk', type: [_.sample(['EnemyBunny', 'EnemyDiabolo', 'EnemyDragon', 'EnemyWTF'])]})
             addEnemy();
-        }, _.random(0.25, 0.5))
+        }, _.random(0.15, 0.35))
     }
 
     const {subscribe, set, update} = writable([]);
@@ -90,6 +118,14 @@
 
             return newItems;
         }),
+        changeStatus: (id, status) => update(items => {
+            const newItems = [...items];
+
+            const obj = newItems.find(obj => obj.id === id);
+            obj.status = status;
+
+            return newItems;
+        }),
     };
 
 
@@ -103,47 +139,116 @@
         });
         const tween = gsap.to(note, {
             x: -enemyWidth,
-            duration: _.random(1.5,2.5),
+            duration: _.random(2,4, true),
             ease:'linear',
             onComplete: () => {
                 enemiesStore.removeEnemy(props.enemy.id);
             },
             onUpdate: () => {
-                const carX = gsap.getProperty('.car', 'x');
-                const carWidth = ~~gsap.getProperty('.car', 'width');
-                const carY = gsap.getProperty('.car', 'y');
-                const carHeight = ~~gsap.getProperty('.car', 'height');
-                const enemyX = gsap.getProperty(note, 'x');
 
-                if (carY + carHeight >= enemyY && carY <= enemyY + enemyHeight &&
-                    carX + carWidth >= enemyX && carX <= enemyX + enemyWidth) {
-                    tween.kill();
-                    enemiesStore.removeEnemy(props.enemy.id);
+                const carX = parseInt(gsap.getProperty('.car', 'x'), 10);
+                const carWidth = parseInt(gsap.getProperty('.car', 'width'), 10);
+                const carY = parseInt(gsap.getProperty('.car', 'y'), 10);
+                const carHeight = parseInt(gsap.getProperty('.car', 'height'), 10);
+                const enemyX = parseInt(gsap.getProperty(note, 'x'), 10);
+                if (props.enemy.status === 'walk') {
+                    if (carY + carHeight >= enemyY && carY <= enemyY + enemyHeight &&
+                        carX + carWidth >= enemyX && carX <= enemyX + enemyWidth) {
+                        helpers.loadAudio(sounds[_.sample(["hit1", "hit2", "hit3"])]).then((obj) => {
+                            obj.play();
+                            obj.setVolume(0.1);
+                        });
+                        killed += 1;
+
+                        enemiesStore.changeStatus(props.enemy.id, 'dead');
+                        helpers.delayCall(() => {
+                            tween.kill();
+                            enemiesStore.removeEnemy(props.enemy.id);
+                        }, 1)
+                    }
+                }
+
+                if (carY > enemyY) {
+                    gsap.set(note, {zIndex: 3})
+                } else {
+                    gsap.set(note, {zIndex: 10})
                 }
             }
         })
     }
+    let contentWidth;
+    import {images, music, sounds} from '/src/assets';
+    import {units} from "src/helpers/index";
+    import settingsStore from "src/stores/settings";
 
-    import {images} from '/src/assets';
+    $: {
+        if (killed === 150 && !$settingsStore.runCompleted) {
+            settingsStore.set('runCompleted', true);
+            helpers.delayCall(() => {
+                settingsStore.set('actualView', null);
+            }, 2)
+        }
+    }
 </script>
-
-
-<div class="road" style="width: 100%; height: 500px; position: absolute; bottom: 0; background: rgba(0, 250, 0, 0.2);">
-    <div class="car" style="position: absolute; left: 0; top: 0; border: 2px solid black; width: 300px; height: 200px;">
-        <AnimationFrameByFrameV2 width="300px" aspectRatio="{16/9}"
+<div style="height: 100vh; width: 100vw; background: #e6d8b7;">
+    <div style="width: 100vw; height: auto; position: absolute; aspect-ratio: 16/9; top:0; z-index: 0;" bind:clientWidth={contentWidth}>
+        <AnimationFrameByFrameV2 width="{contentWidth}" aspectRatio="{9/16}"
                                  introImagesKeys={[]}
-                                 imagesKeys="{images.static.car}"
+                                 imagesKeys="{images.static.paralax}"
                                  isRotated="{false}"
                                  isPlaying="{true}"
                                  delay="{0}"
                                  isDimmed="{false}"
         />
     </div>
+    <div style="position: relative; height: 100vh; width: 100vw; top:0; ">
+        <div class="road" style="bottom: 0; position: absolute; left: 0; width: 100vw; height: 50vh;">
+            <div class="car" style="z-index: 5;position: absolute; left: 0; top: 0; width: 700px; height: {700 * (583 / 1280) * 0.25}px">
+                <AnimationFrameByFrameV2 width="700" aspectRatio="{583 / 1280}"
+                                         introImagesKeys={[]}
+                                         imagesKeys="{images.static.car}"
+                                         isRotated="{false}"
+                                         isPlaying="{true}"
+                                         delay="{0}"
+                                         isDimmed="{false}"
+                />
+            </div>
 
-    {#each $enemiesStore as enemy (enemy.id)}
-        <div use:initEnemy={{enemy}} id="id-{enemy.id}" style="position:absolute; left:0; top:0 ;height: 70px; width: 70px; background: red;"></div>
-    {/each}
+            {#each $enemiesStore as enemy (enemy.id)}
+                <div use:initEnemy={{enemy}} id="id-{enemy.id}" style="position:absolute; left:0; top:0; width: 250px; height: {250 * units[enemy.type].aspectRatio * 0.5}px">
+                    <AnimationFrameByFrameV2 width="250" aspectRatio="{units[enemy.type].aspectRatio}"
+                                             introImagesKeys={[]}
+                                             imagesKeys="{enemy.status === 'dead' ? images.vfx.explosion : images.units[enemy.type][enemy.status]}"
+                                             isRotated="{false}"
+                                             isPlaying="{true}"
+                                             delay="{0}"
+                                             isDimmed="{false}"
+                    />
+                </div>
+            {/each}
+        </div>
+    </div>
+
+    {#if $settingsStore.runCompleted}
+        <div style="width: 1300px; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%)">
+            <AnimationFrameByFrameV2 width="1300" aspectRatio="{9/16}"
+                                     introImagesKeys={[]}
+                                     imagesKeys="{images.static.success}"
+                                     isRotated="{false}"
+                                     isPlaying="{true}"
+                                     delay="{0}"
+                                     isDimmed="{false}"
+            />
+        </div>
+    {/if}
+    <div>
+
+    </div>
 </div>
-
+<div style="position: absolute; left: 0; top: 30px; width: 1088px; height: auto;">
+    <img src="{images.ui['FURMANKA_LICZNIK']}" alt="background"/>
+    <span style=" position: absolute; left: 175px;transform: translateX(-100%); top: 28px;
+    font-size: 20px;">{killed}/150</span>
+</div>
 <style lang="scss">
 </style>

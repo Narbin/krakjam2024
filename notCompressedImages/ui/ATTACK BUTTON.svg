@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 336.19 155.67">
+  <defs>
+    <style>
+      .cls-1 {
+        letter-spacing: -.05em;
+      }
+
+      .cls-2 {
+        fill: #dfb97f;
+        stroke: #c39c6b;
+        stroke-miterlimit: 10;
+        stroke-width: 2.51px;
+      }
+
+      .cls-3 {
+        letter-spacing: .05em;
+      }
+
+      .cls-4 {
+        fill: #714525;
+        stroke: #442015;
+        stroke-linejoin: round;
+        stroke-width: 2.93px;
+      }
+
+      .cls-5 {
+        letter-spacing: -.02em;
+      }
+
+      .cls-6 {
+        letter-spacing: -.07em;
+      }
+
+      .cls-7 {
+        fill: #442015;
+        font-family: Intimacy-Regular, Intimacy;
+        font-size: 44.77px;
+      }
+
+      .cls-8 {
+        fill: #dfb980;
+        stroke-width: 0px;
+      }
+    </style>
+    <symbol id="New_Symbol_6" data-name="New Symbol 6" viewBox="0 0 336.19 155.67">
+      <g>
+        <rect class="cls-4" x="1.47" y="11.68" width="333.26" height="142.52"/>
+        <rect class="cls-4" x="1.47" y="1.47" width="333.26" height="142.52"/>
+        <polygon class="cls-8" points="11.82 133.63 11.82 11.82 324.37 11.82 324.37 133.63 11.82 133.63"/>
+        <polygon class="cls-2" points="21.64 124.44 21.64 21.02 314.56 21.02 314.56 124.44 21.64 124.44"/>
+        <text class="cls-7" transform="translate(82.08 87.56)"><tspan class="cls-1" x="0" y="0">A</tspan><tspan class="cls-3" x="30.93" y="0">T</tspan><tspan class="cls-5" x="57.39" y="0">T</tspan><tspan class="cls-6" x="80.49" y="0">A</tspan><tspan class="cls-5" x="110.26" y="0">C</tspan><tspan x="138.37" y="0">K</tspan></text>
+      </g>
+    </symbol>
+  </defs>
+  <g id="Layer_4" data-name="Layer 4">
+    <use width="336.19" height="155.67" xlink:href="#New_Symbol_6"/>
+  </g>
+</svg>

@@ -1,9 +1,13 @@
 <script>
+    export let selectedBack;
+    export let selectedFront;
+    export let fightIndex;
     import {images, music, sounds} from "src/assets";
 import _ from "lodash";
+    import settingsStore from "src/stores/settings";
 import * as helpers from "src/helpers";
 import {writable} from "svelte/store";
-import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
 import {units} from "src/helpers";
 import {gsap} from "gsap";
     import AnimationFrameByFrameV2 from "src/components/common/AnimationFrameByFrameV2.svelte";
@@ -35,7 +39,6 @@ import {gsap} from "gsap";
                         id: fromObj.id,
                         uses: 2,
                     });
-                    console.log('dodano prowokacje!')
                 } else if (fromObj.type === 'Shooter') {
                     const backLine = newItems.filter(obj => obj.team !== fromObj.team && obj.line === toObj.line);
                     const att = _.random(fromObj.attackMin, fromObj.attackMax) * 0.5;
@@ -52,18 +55,13 @@ import {gsap} from "gsap";
                             obj.hitPoints -= att * 0.8;
                         }
                     });
-                } else if (fromObj.type === 'Enemy1') {
-                    const playerTeam = newItems.filter(obj => obj.team !== fromObj.team);
-                    playerTeam.forEach(obj => {
-                        obj.speed = ~~(obj.speed * 0.7);
-                    });
                 }
 
                 fromObj.cooldown = fromObj.timeout;
             }
 
             if (toObj.hitPoints <= 0) {
-                newItems.splice(newItems.indexOf(toObj), 1);
+                toObj.hitPoints = 0;
             }
 
             return newItems;
@@ -74,7 +72,7 @@ import {gsap} from "gsap";
                 if (obj.cooldown <= 0) {
                     obj.cooldown = 0;
                 }
-                console.log('CD REDUCED', obj.id, obj.cooldown)
+                // console.log('CD REDUCED', obj.id, obj.cooldown)
                 return obj;
             });
             return newItems;
@@ -86,6 +84,23 @@ import {gsap} from "gsap";
             obj.status = status;
 
             return newItems;
+        }),
+        cleanUp: () => update(items => {
+            const lastUnits = [...items.filter(obj => obj.hitPoints > 0)];
+            const enemy = lastUnits.find(obj => obj.team === 'enemy');
+            // console.log(enemy)
+            if (!enemy) {
+                if (fightIndex === 1) {
+                    settingsStore.set('fightCompleted1', true);
+                } else {
+                    settingsStore.set('fightCompleted2', true);
+                }
+
+                helpers.delayCall(() => {
+                    settingsStore.set('actualView', null);
+                }, 2)
+            }
+            return lastUnits;
         })
     }
 
@@ -96,6 +111,7 @@ import {gsap} from "gsap";
         // console.log('moves', moves)
     }
 
+    let fightCompleted = false;
     let moves = _.orderBy($unitsStore, 'speed', 'desc').map(obj => obj.id)
     let currentMove = 0;
     function currentUnitChanged() {
@@ -221,23 +237,47 @@ import {gsap} from "gsap";
             }
         }
     }
+    let audioWalka = null;
 
-    onMount(() => {
-        console.log(images)
-        helpers.loadAudio(music['Boss_-_Baroness_Battle']).then((obj) => {
-            obj.play();
-        });
+    onMount(async () => {
+        audioWalka = await helpers.loadAudio(music['walka'], true);
+        audioWalka.play();
 
-        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'enemy', ...units.EnemyBunny})
-        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'enemy', ...units.EnemyDiabolo})
-        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'player', ...units.Melee})
-        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'player', ...units.Melee})
+        if (fightIndex === 1) {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'enemy', ...units.EnemyBunny})
+        } else {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'enemy', ...units.EnemyDiabolo})
+        }
+        // unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'enemy', ...units.EnemyDiabolo})
 
-        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'enemy', ...units.EnemyDragon})
-        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'enemy', ...units.EnemyWTF})
-        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'player', ...units.Tank})
-        unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'player', ...units.Tank})
+        if (selectedFront[1]) {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 2, team: 'player', ...units[selectedFront[1]]})
+        }
+        if (fightIndex === 1) {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'enemy', ...units.EnemyWTF})
+        } else {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'enemy', ...units.EnemyDragon})
+        }
+        if (selectedBack[1]) {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 2, team: 'player', ...units[selectedBack[1]]})
+        }
 
+        // unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'enemy', ...units.EnemyDragon})
+        // unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'enemy', ...units.EnemyWTF})
+        if (fightIndex === 1) {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'enemy', ...units.EnemyWTF})
+        } else {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'enemy', ...units.EnemyWTF})
+        }
+        if (selectedFront[0]) {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'front', place: 1, team: 'player', ...units[selectedFront[0]]})
+        }
+        if (fightIndex === 2) {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'enemy', ...units.EnemyBunny})
+        }
+        if (selectedBack[0]) {
+            unitsStore.addUnit({status: 'idle', id: UUIDv4(), line: 'back', place: 1, team: 'player', ...units[selectedBack[0]]})
+        }
     })
     let hoveredUnits = [];
 
@@ -259,23 +299,31 @@ import {gsap} from "gsap";
             translateZ: gsap.getProperty(`.id-${to}`, "z"),
             duration: Object.keys(getImagesKeys(currentUnitObj)).length / 24,
             onComplete: () => {
-                unitsStore.changeStatus(from, 'attack');
+                const att = selectedSkillId === 0 ? 'attack' : 'special';
+                unitsStore.changeStatus(from, att);
                 helpers.loadAudio(sounds['whip01-6952']).then((obj) => {
                     obj.play();
                 });
                 if (Math.random() * 100 >= toObj.evasion) {
                     unitsStore.attack(from, to, selectedSkillId);
-                    helpers.delayCall(() => {
-                        unitsStore.changeStatus(to, 'hurt');
-                        window.setTimeout(() => {
-                            unitsStore.changeStatus(to, 'idle');
-                        }, (Object.keys(_.get(images, `units[${toObj.type}].hurt`, {a:''})).length / 24) * 1000);
+                    if (toObj.hitPoints > 0) {
+                        helpers.delayCall(() => {
+                            unitsStore.changeStatus(to, 'hurt');
+                            window.setTimeout(() => {
+                                unitsStore.changeStatus(to, 'idle');
+                            }, (Object.keys(_.get(images, `units[${toObj.type}].hurt`, {a: ''})).length / 24) * 1000);
+                        }, (Object.keys(_.get(images, `units[${currentUnitObj.type}].${att}`, {a:''})).length / 24) * 0.25)
+                    } else {
+                        if (toObj.hitPoints <= 0) {
+                            helpers.delayCall(() => {
+                                unitsStore.changeStatus(to, 'dead');
 
-                    }, (Object.keys(_.get(images, `units[${currentUnitObj.type}].attack`, {a:''})).length / 24) * 0.25)
-
-                } else {
-                    // todo: evadeAnimation
-                    console.log('MISS')
+                                helpers.delayCall(() => {
+                                    unitsStore.cleanUp();
+                                }, 1)
+                            }, (Object.keys(_.get(images, `units[${currentUnitObj.type}].${att}`, {a:''})).length / 24) * 0.25)
+                        }
+                    }
                 }
             },
             onStart: () => {
@@ -298,19 +346,22 @@ import {gsap} from "gsap";
     function getImagesKeys(unit) {
         if (['walk', 'comingBackWalk'].includes(unit.status)) {
             return images.units[unit.type].walk;
+        } else if (unit.status === 'dead') {
+            return images.vfx.explosion;
         }
+
         return images.units[unit.type][unit.status];
     }
 
     function getIsRotated(unit) {
         if (unit.team === 'player') {
-            if (['idle', 'walk', 'attack', 'hurt'].includes(unit.status)) {
+            if (['idle', 'walk', 'attack', 'hurt', 'dead', 'special'].includes(unit.status)) {
                 return true;
             } else {
                 return false;
             }
         } else {
-            if (['idle', 'walk', 'attack', 'hurt'].includes(unit.status)) {
+            if (['idle', 'walk', 'attack', 'hurt', 'dead', 'special'].includes(unit.status)) {
                 return false;
             } else {
                 return true;
@@ -330,14 +381,18 @@ import {gsap} from "gsap";
             // z: -unit.place * 100,
         })
     }
-</script>
 
+    onDestroy(() => {
+        audioWalka.pause();
+    })
+</script>
+<img src="{images.ui['BATTLE_BG']}" style="position: absolute; width: 100%; height: 100%; object-fit: cover;" alt/>
 <div class="test" style="
         aspect-ratio: 16/9;
         position: relative;
         margin: 0 auto;">
     <div style="
-    border: 1px solid black;
+    /*border: 1px solid black;*/
     width: 100%;
     height: 100%;
       /*perspective: 100px;*/
@@ -356,7 +411,7 @@ import {gsap} from "gsap";
                        height: {unitWidth * unit.aspectRatio}px;
                        width: {unitWidth}px;"
                         on:click={() => {
-                       if(currentUnitObj && currentUnitObj.team === 'player' && selectedSkillId !== null) {
+                       if(currentUnitObj && currentUnitObj.team === 'player' && selectedSkillId !== null && unit.team === 'enemy') {
                            attackAnimation(currentUnitObj.id, unit.id, selectedSkillId, () => {
                                // on attack
                             }, () => {
@@ -428,6 +483,20 @@ import {gsap} from "gsap";
     {/if}
 </div>
 </div>
+
+
+{#if ($settingsStore.fightCompleted1 && fightIndex === 1) || ($settingsStore.fightCompleted2 && fightIndex === 2)}
+    <div style="width: 1300px; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%)">
+        <AnimationFrameByFrameV2 width="1300" aspectRatio="{9/16}"
+                                 introImagesKeys={[]}
+                                 imagesKeys="{images.static.success}"
+                                 isRotated="{false}"
+                                 isPlaying="{true}"
+                                 delay="{0}"
+                                 isDimmed="{false}"
+        />
+    </div>
+{/if}
 
 <style lang="scss">
   @media (min-aspect-ratio: 16/9) {
