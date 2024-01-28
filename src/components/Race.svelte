@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import {gsap} from "gsap";
     import _ from "lodash";
     import {writable} from "svelte/store";
@@ -17,20 +17,21 @@
     const speed = 10;
     let roadHeight = 0;
     let killed = 0;
+    let audioWyscig;
+    let audioWoz;
+    let audioChlopi;
 
-    onMount(() => {
-        helpers.loadAudio(music['wyscig'], true).then((obj) => {
-            obj.play();
-            obj.setVolume(1.6);
-        });
-        helpers.loadAudio(sounds['chlopi'], true).then((obj) => {
-            obj.play();
-            obj.setVolume(0.45);
-        });
-        helpers.loadAudio(sounds['woz'], true).then((obj) => {
-            obj.play();
-            obj.setVolume(1.25);
-        });
+
+    onMount(async () => {
+        audioWyscig = await helpers.loadAudio(music['wyscig'], true);
+        audioWyscig.play();
+        audioWyscig.setVolume(1.6);
+        audioChlopi = await helpers.loadAudio(sounds['chlopi'], true);
+        audioChlopi.play();
+        audioChlopi.setVolume(0.45);
+        audioWoz = await helpers.loadAudio(sounds['woz'], true);
+        audioWoz.play();
+        audioWoz.setVolume(1.25);
 
         roadHeight = parseInt(gsap.getProperty('.road', 'height', 'px').replace('px', ''), 10);
         document.addEventListener('keydown', event => {
@@ -93,6 +94,12 @@
         })
 
         addEnemy();
+    })
+
+    onDestroy(() => {
+        audioWyscig.pause();
+        audioWoz.pause();
+        audioChlopi.pause();
     })
 
     function addEnemy() {

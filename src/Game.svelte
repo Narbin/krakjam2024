@@ -88,9 +88,12 @@ function start() {
 
 let play = false;
 let flyingAudio = null;
+let mainMenuAudio = null;
 
 onMount(async () => {
     flyingAudio = await helpers.loadAudio(sounds['latajacy obiekt'], true);
+    mainMenuAudio = await helpers.loadAudio(music['main_menu']);
+    mainMenuAudio.play();
     window.animationCache = {};
     preloadImages(images);
     easterEgg = true;
@@ -106,12 +109,18 @@ onMount(async () => {
 
     document.addEventListener('keydown', start);
     document.addEventListener('click', start);
-    helpers.loadAudio(music['main_menu']).then((obj) => {
-        obj.play();
-    });
+
     flyingAudio.play();
     flyingAudio.pause();
 })
+
+$ : {
+    if (!$settingsStore.actualView) {
+        mainMenuAudio.resume();
+    } else {
+        mainMenuAudio.pause();
+    }
+}
 
 function initWoman(node) {
  gsap.to(node, {
@@ -350,7 +359,7 @@ let showCredits = false;
         top: 28%;
         transform: translate(-50%, -50%);" on:click={()=> {selectedLine = 'front'; selectedPosition = 0;}}>
                          {#if selectedFront[0]}
-                             {selectedFront[0]}
+                             <img alt src="{images.ui.avatars[selectedFront[0]]}">
                          {:else}
                              <img alt src="{images.ui.select['+']}">
                          {/if}
@@ -363,7 +372,7 @@ let showCredits = false;
         top: 28%;
         transform: translate(-50%, -50%);" on:click={()=> {selectedLine = 'front'; selectedPosition = 1;}}>
                          {#if selectedFront[1]}
-                             {selectedFront[1]}
+                             <img alt src="{images.ui.avatars[selectedFront[1]]}">
                          {:else}
                             <img alt src="{images.ui.select['+']}">
                          {/if}
@@ -376,7 +385,7 @@ let showCredits = false;
     top: 73%;
     transform: translate(-50%, -50%);">
                          {#if selectedBack[0]}
-                             {selectedBack[0]}
+                             <img alt src="{images.ui.avatars[selectedBack[0]]}">
                          {:else}
                              <img alt src="{images.ui.select['+']}">
                          {/if}
@@ -388,7 +397,7 @@ let showCredits = false;
     top: 73%;
     transform: translate(-50%, -50%);">
                          {#if selectedBack[1]}
-                             {selectedBack[1]}
+                             <img alt src="{images.ui.avatars[selectedBack[1]]}">
                          {:else}
                              <img alt src="{images.ui.select['+']}">
                          {/if}
@@ -399,9 +408,9 @@ let showCredits = false;
     left: 55%;
     bottom: -30px;
     transform: translate(-50%, -50%); cursor: pointer;" on:click={() => {
-        settingsStore.set('actualView', 'BATTLE');
-        openTeamSelect = false;
-    }}>
+                            settingsStore.set('actualView', 'BATTLE');
+                            openTeamSelect = false;
+                        }}>
                          <img src="{images.ui.select['NAPIERA']}" alt />
                          <span style=" position: absolute;
     left: 50%;
@@ -421,7 +430,7 @@ let showCredits = false;
   {/if}
 {:else}
  <div class="loading">
-  Ładowanie.. {totalLoaded} z {totalItems}
+  Loading.. {totalLoaded} from {totalItems}
  </div>
 {/if}
 

@@ -7,7 +7,7 @@ const settings = {
     frameByFrameFPS: 24,
     transitionsFPS: 24,
     actualModal: null,
-    actualView: '',
+    actualView: null,
     language: 'pl',
     fightCompleted1: false,
     fightCompleted2: false,
