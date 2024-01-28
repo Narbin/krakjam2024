@@ -140,6 +140,7 @@ const units = {
         timeout: 2,
         width: 0.4,
         aspectRatio: 883/1280,
+        skillDesc: 'The Knight steps forward in front of the team and takes on all enemy attacks for several rounds, until he loses his very last limb.'
     },
     Shooter: {
         type: 'Shooter',
@@ -153,6 +154,7 @@ const units = {
         timeout: 3,
         width: 0.3,
         aspectRatio: 951/1280,
+        skillDesc: 'The Bard performs a flamboyant move on his harp, and the discord in his performance causes bleeding in the ears of all monsters in the column.'
     },
     Melee: {
         type: 'Melee',
@@ -166,45 +168,49 @@ const units = {
         timeout: 3,
         width: 0.2,
         aspectRatio: 713/789,
+        skillDesc: 'The Nobleman demonstrates his superiority over all enemies standing on his estates. He attacks all enemies in a row.'
     },
     EnemyBunny: {
         type: 'EnemyBunny',
         hitPoints: 200,
         maxHitPoints: 200,
         speed: 120,
-        attackMin: 100,
-        attackMax: 150,
+        attackMin: 50,
+        attackMax: 75,
         evasion: 50,
         cooldown: 0,
         timeout: 4,
         width: 0.15,
-        aspectRatio: 701/713
+        aspectRatio: 701/713,
+        skillDesc: ''
     },
     EnemyWTF: {
         type: 'EnemyWTF',
         hitPoints: 400,
         maxHitPoints: 400,
         speed: 100,
-        attackMin: 40,
-        attackMax: 60,
+        attackMin: 30,
+        attackMax: 50,
         evasion: 40,
         cooldown: 0,
         timeout: 4,
         width: 0.2,
         aspectRatio: 677/554,
+        skillDesc: ''
     },
     EnemyDiabolo: {
         type: 'EnemyDiabolo',
         hitPoints: 800,
         maxHitPoints: 800,
         speed: 50,
-        attackMin: 80,
-        attackMax: 120,
+        attackMin: 60,
+        attackMax: 80,
         evasion: 5,
         cooldown: 0,
         timeout: 4,
         width: 0.3,
         aspectRatio: 913/751,
+        skillDesc: ''
     },
     EnemyDragon: {
         type: 'EnemyDragon',
@@ -218,6 +224,7 @@ const units = {
         timeout: 4,
         width: 0.3,
         aspectRatio: 576/522,
+        skillDesc: ''
     }
 }
 
