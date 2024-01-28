@@ -96,10 +96,10 @@ onMount(async () => {
     easterEgg = true;
 
     window.gsap = gsap;
-    totalLoaded = totalItems;
+    // totalLoaded = totalItems;
     // wywala sie aktualnie
     helpers.delayCall(() => {
-        // executeSequentially(arr);
+        executeSequentially(arr);
     }, 0.3)
 
     // executeAtOnce(arr);
