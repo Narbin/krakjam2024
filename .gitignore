@@ -67,4 +67,5 @@ node_modules/
 
 public/
 .idea/
-.notCompressedImages/
+notCompressedImages/
+/notCompressedImages/
