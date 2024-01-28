@@ -327,7 +327,7 @@ let showCredits = false;
                      <div style="position: absolute; left: 77px; top: 228px; width: {110 * (helpers.units[availableUnits[selectedUnitIndex]].maxHitPoints / 800)}px; height: 15px; background: #8B906C "></div>
 
                      <span style="position: absolute; left: 44%; top: 250px; transform: translateX(-50%); font-size: 1.2rem;">SPECIAL SKILL</span>
-                     <span style="position: absolute; left: 44%; top: 275px; transform: translateX(-50%); font-size: 1.1rem;">Bla bla</span>
+                     <span style="position: absolute; left: 40%; top: 275px; transform: translateX(-50%); font-size: 0.88rem;">{helpers.units[availableUnits[selectedUnitIndex]].skillDesc}</span>
                  </div>
 
                  <div style="position: absolute; left: 50%; top: 85%; transform: translate(-50%, -50%); width: 500px;">

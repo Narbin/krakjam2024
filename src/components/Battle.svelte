@@ -62,6 +62,11 @@ import {gsap} from "gsap";
 
             if (toObj.hitPoints <= 0) {
                 toObj.hitPoints = 0;
+
+                const playerUnits = newItems.filter(obj => obj.team === 'player');
+                if (playerUnits.length === 1 && toObj.id === playerUnits[0].id) {
+                    toObj.hitPoints = to.maxHitPoints;
+                }
             }
 
             return newItems;
