@@ -295,6 +295,7 @@ import {gsap} from "gsap";
         const toX = gsap.getProperty(`.id-${to}`, "x");
         const fromX = gsap.getProperty(`.id-${from}`, "x");
         const toObj = $unitsStore.find(obj => obj.id === to);
+        const fromObj = $unitsStore.find(obj => obj.id === from);
         unitsStore.changeStatus(from, 'walk');
 
         tl.to(`.id-${from}`, {
@@ -306,9 +307,32 @@ import {gsap} from "gsap";
             onComplete: () => {
                 const att = selectedSkillId === 0 ? 'attack' : 'special';
                 unitsStore.changeStatus(from, att);
-                helpers.loadAudio(sounds['whip01-6952']).then((obj) => {
-                    obj.play();
-                });
+                if (fromObj.type === 'EnemyWTF') {
+                    helpers.loadAudio(sounds['reka_attack']).then((obj) => {
+                        obj.play();
+                    });
+                } else if (fromObj.type === 'EnemyDiabolo') {
+                    helpers.loadAudio(sounds['demon_attack']).then((obj) => {
+                        obj.play();
+                    });
+                }  else if (fromObj.type === 'EnemyBunny') {
+                    helpers.loadAudio(sounds['rabbit_attack']).then((obj) => {
+                        obj.play();
+                    });
+                } else if (fromObj.type === 'Shooter' && att === 'special') {
+                    helpers.loadAudio(sounds['shooter_attack']).then((obj) => {
+                        obj.play();
+                    });
+                } else if (fromObj.type === 'Melee' && att === 'special') {
+                    helpers.loadAudio(sounds['melee_specj_um']).then((obj) => {
+                        obj.play();
+                    });
+                } else {
+                    helpers.loadAudio(sounds['whip01-6952']).then((obj) => {
+                        obj.play();
+                    });
+                }
+
                 if (Math.random() * 100 >= toObj.evasion) {
                     unitsStore.attack(from, to, selectedSkillId);
                     if (toObj.hitPoints > 0) {
