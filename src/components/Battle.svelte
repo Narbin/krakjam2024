@@ -484,6 +484,29 @@ import {gsap} from "gsap";
 </div>
 </div>
 
+<div style="position: absolute; bottom: 0; left: 0%; ">
+    {#each $unitsStore.filter(obj => obj.team === 'player') as unit, index (unit.id)}
+        <img src="{images.ui.avatars[unit.type]}" style="width: 140px; margin: 5px; {unit.id === currentUnitObj.id ? 'filter: brightness(1.5);' : ''} "/>
+    {/each}
+</div>
+
+<div style="position: absolute; bottom: 0; left: 50%; display: flex; transform: translateX(-50%)">
+    <div style="{selectedSkillId === 0 ? 'filter: brightness(1.5);' : ''} margin: 5px; width: 300px; position: relative; cursor: pointer;" on:click={() => {selectedSkillId = 0}}>
+        <img src="{images.ui['Asset 23']}" alt/>
+        <span style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -60%)">ATTACK</span>
+    </div>
+    <div style="{selectedSkillId === 1 ? 'filter: brightness(1.5);' : ''} margin: 5px;width: 300px; position: relative; cursor: pointer;" on:click={() => {selectedSkillId = 1}}>
+        <img src="{images.ui['Asset 23']}" alt/>
+        <span style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -60%)">SKILL SHOT</span>
+    </div>
+</div>
+
+<div style="position: absolute; bottom: 0; right: 0%; ">
+    {#each $unitsStore.filter(obj => obj.team === 'enemy') as unit, index (unit.id)}
+        <img src="{images.ui.avatars[unit.type]}" style="width: 140px; margin: 5px; {unit.id === currentUnitObj.id ? 'filter: brightness(1.5);' : ''} "/>
+    {/each}
+</div>
+
 
 {#if ($settingsStore.fightCompleted1 && fightIndex === 1) || ($settingsStore.fightCompleted2 && fightIndex === 2)}
     <div style="width: 1300px; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%)">
